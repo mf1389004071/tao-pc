@@ -27,7 +27,7 @@ export default defineConfig(({ mode, command }) => {
     },
     // vite 相关配置
     server: {
-      port: 80,
+      port: 8081,
       host: true,
       open: false,  // 启动时是否启动自动打开浏览器
       proxy: {
