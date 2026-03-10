@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<{
   autoScroll?: boolean
   hidden?: boolean
 }>(), {
-  pageSizes: () => [10, 20, 30, 50],
+  pageSizes: () => [10, 20, 30, 50, 100, 200],
   pagerCount: document.body.clientWidth < 992 ? 5 : 7,
   layout: 'total, sizes, prev, pager, next, jumper',
   background: true,
