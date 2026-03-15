@@ -14,6 +14,8 @@ import ChunkUpload from "@/components/UploadComponents/ChunkUpload/index.vue"
 import ImagePreview from "@/components/ImagePreview/index.vue"
 // 自定义树选择组件
 import TreeSelect from '@/components/TreeSelect/index.vue'
+// 人员下拉选择器
+import UserSelect from '@/components/UserSelect/index.vue'
 // 字典标签组件
 import DictTag from '@/components/DictTag/index.vue'
 // 富文本编辑器组件
@@ -40,6 +42,7 @@ export default function initComponents(app: App<Element>): void {
   app.component('DictTag', DictTag)
   app.component('Pagination', Pagination)
   app.component('TreeSelect', TreeSelect)
+  app.component('UserSelect', UserSelect)
   app.component('FileUpload', FileUpload)
   app.component('ImageUpload', ImageUpload)
   app.component('ChunkUpload', ChunkUpload)

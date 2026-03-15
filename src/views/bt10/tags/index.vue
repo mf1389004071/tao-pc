@@ -209,13 +209,15 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 
-// 标签类型枚举（按描述配置，用于可搜索下拉与列表展示）
+// 标签类型枚举（按描述配置，用于可搜索下拉与列表展示；按用途补齐活动等场景）
 const tagTypeOptions = [
   { value: 'ABILITY', label: '能力' },
   { value: 'INTEREST', label: '兴趣' },
   { value: 'INDUSTRY', label: '行业' },
   { value: 'RESOURCE', label: '资源' },
-  { value: 'NEED', label: '需求' }
+  { value: 'NEED', label: '需求' },
+  { value: 'EVENT_TARGET_AUDIENCE', label: '目标学员画像（活动）' },
+  { value: 'EVENT_TAG', label: '活动标签' }
 ];
 
 /** 根据标签类型 value 取展示用 label */

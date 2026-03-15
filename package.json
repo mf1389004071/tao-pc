@@ -30,6 +30,7 @@
     "crypto-js": "^4.2.0",
     "diagram-js": "^15.3.0",
     "echarts": "6.0.0",
+    "element-china-area-data": "6.1.0",
     "element-plus": "2.13.2",
     "fast-glob": "^3.3.3",
     "file-saver": "2.0.5",

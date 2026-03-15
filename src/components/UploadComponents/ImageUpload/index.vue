@@ -1,24 +1,37 @@
 <template>
-  <div class="component-upload-image">
-    <el-upload multiple :action="uploadImgUrl" list-type="picture-card" :on-success="handleUploadSuccess"
-      :before-upload="handleBeforeUpload" :limit="limit" :on-error="handleUploadError" :on-exceed="handleExceed"
-      ref="imageUpload" :before-remove="handleDelete" :show-file-list="true" :headers="headers" :file-list="fileList"
-      :on-preview="handlePictureCardPreview" :class="{ hide: fileList.length >= limit }">
-      <el-icon class="avatar-uploader-icon">
-        <plus />
-      </el-icon>
-    </el-upload>
-    <!-- 上传提示 -->
-    <div class="el-upload__tip" v-if="showTip">
-      请上传
-      <template v-if="fileSize">
-        大小不超过 <b style="color: #f56c6c">{{ fileSize }}MB</b>
+  <div class="component-upload-image" :style="cardSizeStyle">
+    <el-tooltip v-if="showTip && tipAsTooltip" placement="top">
+      <template #content>
+        请上传
+        <template v-if="fileSize">大小不超过 {{ fileSize }}MB</template>
+        <template v-if="fileType">格式为 {{ fileType.join('/') }}</template>
+        的文件
       </template>
-      <template v-if="fileType">
-        格式为 <b style="color: #f56c6c">{{ fileType.join("/") }}</b>
-      </template>
-      的文件
-    </div>
+      <el-upload multiple :action="uploadImgUrl" list-type="picture-card" :on-success="handleUploadSuccess"
+        :before-upload="handleBeforeUpload" :limit="limit" :on-error="handleUploadError" :on-exceed="handleExceed"
+        ref="imageUpload" :before-remove="handleDelete" :show-file-list="true" :headers="headers" :file-list="fileList"
+        :on-preview="handlePictureCardPreview" :class="{ hide: fileList.length >= limit }">
+        <el-icon class="avatar-uploader-icon">
+          <plus />
+        </el-icon>
+      </el-upload>
+    </el-tooltip>
+    <template v-else>
+      <el-upload multiple :action="uploadImgUrl" list-type="picture-card" :on-success="handleUploadSuccess"
+        :before-upload="handleBeforeUpload" :limit="limit" :on-error="handleUploadError" :on-exceed="handleExceed"
+        ref="imageUpload" :before-remove="handleDelete" :show-file-list="true" :headers="headers" :file-list="fileList"
+        :on-preview="handlePictureCardPreview" :class="{ hide: fileList.length >= limit }">
+        <el-icon class="avatar-uploader-icon">
+          <plus />
+        </el-icon>
+      </el-upload>
+      <div class="el-upload__tip" v-if="showTip">
+        请上传
+        <template v-if="fileSize">大小不超过 <b style="color: #f56c6c">{{ fileSize }}MB</b></template>
+        <template v-if="fileType">格式为 <b style="color: #f56c6c">{{ fileType.join("/") }}</b></template>
+        的文件
+      </div>
+    </template>
 
     <el-dialog v-model="dialogVisible" title="预览" width="800px" append-to-body>
       <img :src="dialogImageUrl" style="display: block; max-width: 100%; margin: 0 auto" />
@@ -52,6 +65,16 @@ const props = defineProps({
   isShowTip: {
     type: Boolean,
     default: true
+  },
+  // 提示改为鼠标悬停显示（不占行高）
+  tipAsTooltip: {
+    type: Boolean,
+    default: true
+  },
+  // 卡片预览尺寸（正方形边长 px），默认 80
+  cardSize: {
+    type: Number,
+    default: 80
   },
   // 新增：自定义上传地址
   uploadImgUrl: {
@@ -200,6 +223,12 @@ function listToString(list, separator) {
 </script>
 
 <style scoped lang="scss">
+// 卡片尺寸（正方形）
+:deep(.el-upload--picture-card),
+:deep(.el-upload-list__item) {
+  width: var(--upload-card-size, 80px) !important;
+  height: var(--upload-card-size, 80px) !important;
+}
 // .el-upload--picture-card 控制加号部分
 :deep(.hide .el-upload--picture-card) {
   display: none;
