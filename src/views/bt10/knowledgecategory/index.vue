@@ -58,30 +58,6 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input
-            v-model="queryParams.text1"
-            placeholder="请输入扩展文本1"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input
-            v-model="queryParams.text2"
-            placeholder="请输入扩展文本2"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input
-            v-model="queryParams.text3"
-            placeholder="请输入扩展文本3"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -136,17 +112,12 @@
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="分类名称" align="center" prop="name" />
       <el-table-column label="URL/唯一标识" align="center" prop="slug" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="父分类ID" align="center" prop="parentId" />
       <el-table-column label="排序" align="center" prop="orderNum" />
-      <el-table-column label="状态" align="center" prop="status" />
       <el-table-column label="图标" align="center" prop="icon" />
       <el-table-column label="主题色" align="center" prop="color" />
       <el-table-column label="可见权限等级1-5" align="center" prop="permissionLevel" />
-      <el-table-column label="扩展文本1" align="center" prop="text1" />
-      <el-table-column label="扩展文本2" align="center" prop="text2" />
-      <el-table-column label="扩展文本3" align="center" prop="text3" />
-      <el-table-column label="扩展JSON" align="center" prop="jsonData" />
+      <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:knowledgecategory:edit']">修改</el-button>
@@ -173,9 +144,6 @@
         <el-form-item label="URL/唯一标识" prop="slug">
           <el-input v-model="form.slug" placeholder="请输入URL/唯一标识" />
         </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
         <el-form-item label="父分类ID" prop="parentId">
           <el-input v-model="form.parentId" placeholder="请输入父分类ID" />
         </el-form-item>
@@ -191,14 +159,8 @@
         <el-form-item label="可见权限等级1-5" prop="permissionLevel">
           <el-input v-model="form.permissionLevel" placeholder="请输入可见权限等级1-5" />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input v-model="form.text1" placeholder="请输入扩展文本1" />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input v-model="form.text2" placeholder="请输入扩展文本2" />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input v-model="form.text3" placeholder="请输入扩展文本3" />
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -235,14 +197,10 @@ const data = reactive({
     slug: null,
     parentId: null,
     orderNum: null,
-    status: null,
     icon: null,
     color: null,
     permissionLevel: null,
-    text1: null,
-    text2: null,
-    text3: null,
-    jsonData: null
+    status: null,
   },
   rules: {
   }
@@ -272,24 +230,26 @@ function reset() {
     id: null,
     name: null,
     slug: null,
-    remark: null,
     parentId: null,
     orderNum: null,
-    status: null,
     icon: null,
     color: null,
     permissionLevel: null,
-    createId: null,
-    updateId: null,
-    deleteId: null,
-    createTime: null,
-    updateTime: null,
-    deleteTime: null,
-    delFlag: null,
     text1: null,
     text2: null,
     text3: null,
-    jsonData: null
+    jsonData: null,
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    deleteId: null,
+    deleteTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("knowledgecategoryRef");
 }

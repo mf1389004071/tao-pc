@@ -90,10 +90,42 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="企业微信用户ID" prop="workUserid">
+        <el-form-item label="企业微信用户ID" prop="wxWorkUserid">
           <el-input
-            v-model="queryParams.workUserid"
+            v-model="queryParams.wxWorkUserid"
             placeholder="请输入企业微信用户ID"
+            clearable
+            @keyup.enter="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="Facebook用户ID" prop="facebookUserid">
+          <el-input
+            v-model="queryParams.facebookUserid"
+            placeholder="请输入Facebook用户ID"
+            clearable
+            @keyup.enter="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="Google用户ID" prop="googleUserid">
+          <el-input
+            v-model="queryParams.googleUserid"
+            placeholder="请输入Google用户ID"
+            clearable
+            @keyup.enter="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="Apple用户ID" prop="appleUserid">
+          <el-input
+            v-model="queryParams.appleUserid"
+            placeholder="请输入Apple用户ID"
+            clearable
+            @keyup.enter="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="Outlook用户ID" prop="outlookUserid">
+          <el-input
+            v-model="queryParams.outlookUserid"
+            placeholder="请输入Outlook用户ID"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -126,30 +158,6 @@
           <el-input
             v-model="queryParams.bizRole"
             placeholder="请输入业务角色：创始人/联创/合伙人/高手/城市主理人/会员"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input
-            v-model="queryParams.text1"
-            placeholder="请输入扩展文本1"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input
-            v-model="queryParams.text2"
-            placeholder="请输入扩展文本2"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input
-            v-model="queryParams.text3"
-            placeholder="请输入扩展文本3"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -225,7 +233,11 @@
       <el-table-column label="微信开放平台 unionid" align="center" prop="wechatUnionid" />
       <el-table-column label="微信开放平台 openid" align="center" prop="wechatOpenid" />
       <el-table-column label="小程序 openid" align="center" prop="miniappOpenid" />
-      <el-table-column label="企业微信用户ID" align="center" prop="workUserid" />
+      <el-table-column label="企业微信用户ID" align="center" prop="wxWorkUserid" />
+      <el-table-column label="Facebook用户ID" align="center" prop="facebookUserid" />
+      <el-table-column label="Google用户ID" align="center" prop="googleUserid" />
+      <el-table-column label="Apple用户ID" align="center" prop="appleUserid" />
+      <el-table-column label="Outlook用户ID" align="center" prop="outlookUserid" />
       <el-table-column label="小鹅通用户ID(同步)" align="center" prop="xiaoeUserId" />
       <el-table-column label="小鹅通原始数据快照" align="center" prop="xiaoeData" />
       <el-table-column label="邀请人用户ID(sys_user.user_id)" align="center" prop="inviterId" />
@@ -242,11 +254,6 @@
       <el-table-column label="可交流时段描述" align="center" prop="availableTimeSlots" />
       <el-table-column label="可约状态：可约/已约/不约" align="center" prop="appointmentStatus" />
       <el-table-column label="额外画像信息(JSON)，如家庭成员/挑战列表等" align="center" prop="extraProfile" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="扩展文本1" align="center" prop="text1" />
-      <el-table-column label="扩展文本2" align="center" prop="text2" />
-      <el-table-column label="扩展文本3" align="center" prop="text3" />
-      <el-table-column label="扩展JSON" align="center" prop="jsonData" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -265,7 +272,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改用户信息画像扩展表对话框 -->
+    <!-- 添加或修改用户和角色关联表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="userprofilesRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="真实姓名" prop="realName">
@@ -311,8 +318,20 @@
         <el-form-item label="小程序 openid" prop="miniappOpenid">
           <el-input v-model="form.miniappOpenid" placeholder="请输入小程序 openid" />
         </el-form-item>
-        <el-form-item label="企业微信用户ID" prop="workUserid">
-          <el-input v-model="form.workUserid" placeholder="请输入企业微信用户ID" />
+        <el-form-item label="企业微信用户ID" prop="wxWorkUserid">
+          <el-input v-model="form.wxWorkUserid" placeholder="请输入企业微信用户ID" />
+        </el-form-item>
+        <el-form-item label="Facebook用户ID" prop="facebookUserid">
+          <el-input v-model="form.facebookUserid" placeholder="请输入Facebook用户ID" />
+        </el-form-item>
+        <el-form-item label="Google用户ID" prop="googleUserid">
+          <el-input v-model="form.googleUserid" placeholder="请输入Google用户ID" />
+        </el-form-item>
+        <el-form-item label="Apple用户ID" prop="appleUserid">
+          <el-input v-model="form.appleUserid" placeholder="请输入Apple用户ID" />
+        </el-form-item>
+        <el-form-item label="Outlook用户ID" prop="outlookUserid">
+          <el-input v-model="form.outlookUserid" placeholder="请输入Outlook用户ID" />
         </el-form-item>
         <el-form-item label="小鹅通用户ID(同步)" prop="xiaoeUserId">
           <el-input v-model="form.xiaoeUserId" placeholder="请输入小鹅通用户ID(同步)" />
@@ -359,15 +378,6 @@
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input v-model="form.text1" placeholder="请输入扩展文本1" />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input v-model="form.text2" placeholder="请输入扩展文本2" />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input v-model="form.text3" placeholder="请输入扩展文本3" />
-        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -410,7 +420,11 @@ const data = reactive({
     wechatUnionid: null,
     wechatOpenid: null,
     miniappOpenid: null,
-    workUserid: null,
+    wxWorkUserid: null,
+    facebookUserid: null,
+    googleUserid: null,
+    appleUserid: null,
+    outlookUserid: null,
     xiaoeUserId: null,
     xiaoeData: null,
     inviterId: null,
@@ -427,11 +441,7 @@ const data = reactive({
     availableTimeSlots: null,
     appointmentStatus: null,
     extraProfile: null,
-    text1: null,
-    text2: null,
-    text3: null,
-    jsonData: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -439,7 +449,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询用户信息画像扩展表列表 */
+/** 查询用户和角色关联表列表 */
 function getList() {
   loading.value = true;
   listUserprofiles(queryParams.value).then(response => {
@@ -470,7 +480,11 @@ function reset() {
     wechatUnionid: null,
     wechatOpenid: null,
     miniappOpenid: null,
-    workUserid: null,
+    wxWorkUserid: null,
+    facebookUserid: null,
+    googleUserid: null,
+    appleUserid: null,
+    outlookUserid: null,
     xiaoeUserId: null,
     xiaoeData: null,
     inviterId: null,
@@ -487,17 +501,19 @@ function reset() {
     availableTimeSlots: null,
     appointmentStatus: null,
     extraProfile: null,
-    remark: null,
-    createTime: null,
-    updateTime: null,
-    createId: null,
-    updateId: null,
     text1: null,
     text2: null,
     text3: null,
     jsonData: null,
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
     delFlag: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("userprofilesRef");
 }
@@ -525,7 +541,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加用户信息画像扩展表";
+  title.value = "添加用户和角色关联表";
 }
 
 /** 修改按钮操作 */
@@ -535,7 +551,7 @@ function handleUpdate(row) {
   getUserprofiles(_userId).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改用户信息画像扩展表";
+    title.value = "修改用户和角色关联表";
   });
 }
 
@@ -563,7 +579,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _userIds = row.userId || ids.value;
-  proxy.$modal.confirm('是否确认删除用户信息画像扩展表编号为"' + _userIds + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除用户和角色关联表编号为"' + _userIds + '"的数据项？').then(function() {
     return delUserprofiles(_userIds);
   }).then(() => {
     getList();

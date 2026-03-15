@@ -171,6 +171,9 @@
         <el-form-item label="本场会议链接" prop="meetingUrl">
           <el-input v-model="form.meetingUrl" type="textarea" placeholder="请输入内容" />
         </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -210,7 +213,7 @@ const data = reactive({
     checkInCount: null,
     summaryText: null,
     meetingUrl: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -247,11 +250,14 @@ function reset() {
     summaryText: null,
     meetingUrl: null,
     createId: null,
-    updateId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
     updateTime: null,
+    status: null,
     delFlag: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("eventsessionRef");
 }

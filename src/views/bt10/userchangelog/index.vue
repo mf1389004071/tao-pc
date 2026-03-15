@@ -99,8 +99,6 @@
           </template>
         </el-table-column>
       <el-table-column label="扩展信息" align="center" prop="metadata" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:userchangelog:edit']">修改</el-button>
@@ -118,7 +116,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改用户关键字段变更记录对话框 -->
+    <!-- 添加或修改用户贡献点收支流水对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="userchangelogRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户ID" prop="userId">
@@ -201,7 +199,6 @@ const data = reactive({
     operatorType: null,
     changedTime: null,
     metadata: null,
-    status: null
   },
   rules: {
   }
@@ -209,7 +206,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询用户关键字段变更记录列表 */
+/** 查询用户贡献点收支流水列表 */
 function getList() {
   loading.value = true;
   listUserchangelog(queryParams.value).then(response => {
@@ -238,8 +235,7 @@ function reset() {
     operatorType: null,
     changedTime: null,
     metadata: null,
-    remark: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("userchangelogRef");
 }
@@ -267,7 +263,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加用户关键字段变更记录";
+  title.value = "添加用户贡献点收支流水";
 }
 
 /** 修改按钮操作 */
@@ -277,7 +273,7 @@ function handleUpdate(row) {
   getUserchangelog(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改用户关键字段变更记录";
+    title.value = "修改用户贡献点收支流水";
   });
 }
 
@@ -305,7 +301,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除用户关键字段变更记录编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除用户贡献点收支流水编号为"' + _ids + '"的数据项？').then(function() {
     return delUserchangelog(_ids);
   }).then(() => {
     getList();

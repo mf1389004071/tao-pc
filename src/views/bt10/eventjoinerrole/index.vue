@@ -99,7 +99,7 @@
           </template>
         </el-table-column>
       <el-table-column label="状态：已分配/已确认/已拒绝" align="center" prop="bizStatus" />
-      <el-table-column label="备注" align="center" prop="remark" />
+      <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:eventjoinerrole:edit']">修改</el-button>
@@ -181,6 +181,7 @@ const data = reactive({
     assignedTime: null,
     confirmedTime: null,
     bizStatus: null,
+    status: null,
   },
   rules: {
   }
@@ -213,6 +214,13 @@ function reset() {
     assignedTime: null,
     confirmedTime: null,
     bizStatus: null,
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
     delFlag: null,
     remark: null
   };

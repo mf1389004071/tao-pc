@@ -86,7 +86,6 @@
       <el-table-column label="AI摘要" align="center" prop="summary" />
       <el-table-column label="关键点" align="center" prop="keyPoints" />
       <el-table-column label="行动清单" align="center" prop="actionItems" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -105,7 +104,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改音视频转写与AI摘要对话框 -->
+    <!-- 添加或修改活动关键信息变更记录对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="aimeetingtranscriptsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="关联活动ID" prop="eventId">
@@ -165,7 +164,7 @@ const data = reactive({
     summary: null,
     keyPoints: null,
     actionItems: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -173,7 +172,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询音视频转写与AI摘要列表 */
+/** 查询活动关键信息变更记录列表 */
 function getList() {
   loading.value = true;
   listAimeetingtranscripts(queryParams.value).then(response => {
@@ -202,11 +201,14 @@ function reset() {
     keyPoints: null,
     actionItems: null,
     createId: null,
-    updateId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
     updateTime: null,
-    remark: null,
-    status: null
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("aimeetingtranscriptsRef");
 }
@@ -234,7 +236,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加音视频转写与AI摘要";
+  title.value = "添加活动关键信息变更记录";
 }
 
 /** 修改按钮操作 */
@@ -244,7 +246,7 @@ function handleUpdate(row) {
   getAimeetingtranscripts(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改音视频转写与AI摘要";
+    title.value = "修改活动关键信息变更记录";
   });
 }
 
@@ -272,7 +274,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除音视频转写与AI摘要编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除活动关键信息变更记录编号为"' + _ids + '"的数据项？').then(function() {
     return delAimeetingtranscripts(_ids);
   }).then(() => {
     getList();

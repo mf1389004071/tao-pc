@@ -140,7 +140,6 @@
             <span>{{ parseTime(scope.row.completeTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -269,7 +268,7 @@ const data = reactive({
     modelUsed: null,
     startTime: null,
     completeTime: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -312,14 +311,16 @@ function reset() {
     startTime: null,
     completeTime: null,
     createId: null,
-    updateId: null,
-    deleteId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
     updateTime: null,
+    deleteId: null,
     deleteTime: null,
+    status: null,
     delFlag: null,
-    remark: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("aitasksRef");
 }

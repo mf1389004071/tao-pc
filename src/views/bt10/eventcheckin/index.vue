@@ -104,7 +104,6 @@
       <el-table-column label="签到方式：二维码/定位/手动" align="center" prop="checkInMethod" />
       <el-table-column label="签到位置" align="center" prop="checkInLocation" />
       <el-table-column label="操作人ID(手动签到时)" align="center" prop="operatorId" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -186,7 +185,7 @@ const data = reactive({
     checkInMethod: null,
     checkInLocation: null,
     operatorId: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -220,9 +219,15 @@ function reset() {
     checkInMethod: null,
     checkInLocation: null,
     operatorId: null,
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
     delFlag: null,
-    remark: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("eventcheckinRef");
 }

@@ -105,7 +105,6 @@
       <el-table-column label="利益说明" align="center" prop="benefitsText" />
       <el-table-column label="晋升说明" align="center" prop="upgradeRulesText" />
       <el-table-column label="身份付费金额(人民币)" align="center" prop="priceAmount" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -205,7 +204,7 @@ const data = reactive({
     benefitsText: null,
     upgradeRulesText: null,
     priceAmount: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -244,11 +243,15 @@ function reset() {
     benefitsText: null,
     upgradeRulesText: null,
     priceAmount: null,
+    createId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
     updateTime: null,
-    remark: null,
+    status: null,
     delFlag: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("identitiesRef");
 }

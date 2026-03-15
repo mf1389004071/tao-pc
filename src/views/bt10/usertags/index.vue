@@ -90,7 +90,6 @@
       <el-table-column label="标签ID" align="center" prop="tagId" />
       <el-table-column label="权重(0-1或0-100，越大代表相关性越高)" align="center" prop="weight" />
       <el-table-column label="来源：SYSTEM/SELF/COACH等" align="center" prop="source" />
-      <el-table-column label="备注/说明" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -109,7 +108,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改用户与多维标签关联表对话框 -->
+    <!-- 添加或修改用户行为轨迹日志对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="usertagsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户ID" prop="userId">
@@ -124,7 +123,7 @@
         <el-form-item label="来源：SYSTEM/SELF/COACH等" prop="source">
           <el-input v-model="form.source" placeholder="请输入来源：SYSTEM/SELF/COACH等" />
         </el-form-item>
-        <el-form-item label="备注/说明" prop="remark">
+        <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
@@ -162,7 +161,7 @@ const data = reactive({
     tagId: null,
     weight: null,
     source: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -170,7 +169,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询用户与多维标签关联表列表 */
+/** 查询用户行为轨迹日志列表 */
 function getList() {
   loading.value = true;
   listUsertags(queryParams.value).then(response => {
@@ -194,10 +193,15 @@ function reset() {
     tagId: null,
     weight: null,
     source: null,
-    remark: null,
+    createId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
     delFlag: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("usertagsRef");
 }
@@ -225,7 +229,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加用户与多维标签关联表";
+  title.value = "添加用户行为轨迹日志";
 }
 
 /** 修改按钮操作 */
@@ -235,7 +239,7 @@ function handleUpdate(row) {
   getUsertags(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改用户与多维标签关联表";
+    title.value = "修改用户行为轨迹日志";
   });
 }
 
@@ -263,7 +267,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除用户与多维标签关联表编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除用户行为轨迹日志编号为"' + _ids + '"的数据项？').then(function() {
     return delUsertags(_ids);
   }).then(() => {
     getList();

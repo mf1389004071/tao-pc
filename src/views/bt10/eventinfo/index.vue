@@ -130,30 +130,6 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input
-            v-model="queryParams.text1"
-            placeholder="请输入扩展文本1"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input
-            v-model="queryParams.text2"
-            placeholder="请输入扩展文本2"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input
-            v-model="queryParams.text3"
-            placeholder="请输入扩展文本3"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -207,7 +183,6 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="活动标题" align="center" prop="title" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="参与方式：线上/线下/混合" align="center" prop="joinType" />
       <el-table-column label="活动分类" align="center" prop="category" />
         <el-table-column label="开始时间" align="center" prop="startTime" width="180">
@@ -256,10 +231,6 @@
       <el-table-column label="主办方" align="center" prop="organizer" />
       <el-table-column label="联系方式" align="center" prop="contact" />
       <el-table-column label="负责人ID" align="center" prop="pmUserId" />
-      <el-table-column label="扩展文本1" align="center" prop="text1" />
-      <el-table-column label="扩展文本2" align="center" prop="text2" />
-      <el-table-column label="扩展文本3" align="center" prop="text3" />
-      <el-table-column label="扩展配置" align="center" prop="jsonData" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -283,9 +254,6 @@
       <el-form ref="eventinfoRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="活动标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入活动标题" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
         <el-form-item label="参与方式：线上/线下/混合" prop="joinType">
           <el-select v-model="form.joinType" multiple filterable remote reserve-keyword remote-show-suffix
@@ -411,14 +379,8 @@
         <el-form-item label="负责人ID" prop="pmUserId">
           <el-input v-model="form.pmUserId" placeholder="请输入负责人ID" />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input v-model="form.text1" placeholder="请输入扩展文本1" />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input v-model="form.text2" placeholder="请输入扩展文本2" />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input v-model="form.text3" placeholder="请输入扩展文本3" />
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -488,11 +450,7 @@ const data = reactive({
     organizer: null,
     contact: null,
     pmUserId: null,
-    text1: null,
-    text2: null,
-    text3: null,
-    jsonData: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -521,7 +479,6 @@ function reset() {
   form.value = {
     id: null,
     title: null,
-    remark: null,
     joinType: null,
     category: null,
     startTime: null,
@@ -558,18 +515,21 @@ function reset() {
     organizer: null,
     contact: null,
     pmUserId: null,
-    createId: null,
-    updateId: null,
-    deleteId: null,
-    createTime: null,
-    updateTime: null,
-    deleteTime: null,
-    delFlag: null,
     text1: null,
     text2: null,
     text3: null,
     jsonData: null,
-    status: null
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    deleteId: null,
+    deleteTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("eventinfoRef");
 }

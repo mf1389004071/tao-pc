@@ -98,30 +98,6 @@
             placeholder="请选择退款时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input
-            v-model="queryParams.text1"
-            placeholder="请输入扩展文本1"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input
-            v-model="queryParams.text2"
-            placeholder="请输入扩展文本2"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input
-            v-model="queryParams.text3"
-            placeholder="请输入扩展文本3"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -198,11 +174,6 @@
             <span>{{ parseTime(scope.row.refundedTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="扩展文本1" align="center" prop="text1" />
-      <el-table-column label="扩展文本2" align="center" prop="text2" />
-      <el-table-column label="扩展文本3" align="center" prop="text3" />
-      <el-table-column label="扩展JSON" align="center" prop="jsonData" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -221,7 +192,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改统一支付订单对话框 -->
+    <!-- 添加或修改统一支付订单明细表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="paymentinfoRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="业务订单号" prop="orderNo">
@@ -295,15 +266,6 @@
             placeholder="请选择退款时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input v-model="form.text1" placeholder="请输入扩展文本1" />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input v-model="form.text2" placeholder="请输入扩展文本2" />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input v-model="form.text3" placeholder="请输入扩展文本3" />
-        </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
@@ -354,11 +316,7 @@ const data = reactive({
     refundAmount: null,
     refundReason: null,
     refundedTime: null,
-    text1: null,
-    text2: null,
-    text3: null,
-    jsonData: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -366,7 +324,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询统一支付订单列表 */
+/** 查询统一支付订单明细表列表 */
 function getList() {
   loading.value = true;
   listPaymentinfo(queryParams.value).then(response => {
@@ -402,17 +360,19 @@ function reset() {
     refundAmount: null,
     refundReason: null,
     refundedTime: null,
-    createId: null,
-    updateId: null,
-    createTime: null,
-    updateTime: null,
-    delFlag: null,
     text1: null,
     text2: null,
     text3: null,
     jsonData: null,
-    remark: null,
-    status: null
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("paymentinfoRef");
 }
@@ -440,7 +400,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加统一支付订单";
+  title.value = "添加统一支付订单明细表";
 }
 
 /** 修改按钮操作 */
@@ -450,7 +410,7 @@ function handleUpdate(row) {
   getPaymentinfo(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改统一支付订单";
+    title.value = "修改统一支付订单明细表";
   });
 }
 
@@ -478,7 +438,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除统一支付订单编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除统一支付订单明细表编号为"' + _ids + '"的数据项？').then(function() {
     return delPaymentinfo(_ids);
   }).then(() => {
     getList();

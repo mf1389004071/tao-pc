@@ -73,7 +73,6 @@
       <el-table-column label="知识内容ID" align="center" prop="contentId" />
       <el-table-column label="类型：点赞/反对/收藏/分享等" align="center" prop="actionType" />
       <el-table-column label="用户ID" align="center" prop="userId" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -92,7 +91,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改用户对知识内容的行为记录对话框 -->
+    <!-- 添加或修改用户成长阶段变更历史对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="knowledgeactionRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="知识内容ID" prop="contentId">
@@ -149,7 +148,7 @@ const data = reactive({
     contentId: null,
     actionType: null,
     userId: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -157,7 +156,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询用户对知识内容的行为记录列表 */
+/** 查询用户成长阶段变更历史列表 */
 function getList() {
   loading.value = true;
   listKnowledgeaction(queryParams.value).then(response => {
@@ -180,9 +179,15 @@ function reset() {
     contentId: null,
     actionType: null,
     userId: null,
+    createId: null,
+    createBy: null,
     createTime: null,
-    remark: null,
-    status: null
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("knowledgeactionRef");
 }
@@ -210,7 +215,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加用户对知识内容的行为记录";
+  title.value = "添加用户成长阶段变更历史";
 }
 
 /** 修改按钮操作 */
@@ -220,7 +225,7 @@ function handleUpdate(row) {
   getKnowledgeaction(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改用户对知识内容的行为记录";
+    title.value = "修改用户成长阶段变更历史";
   });
 }
 
@@ -248,7 +253,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除用户对知识内容的行为记录编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除用户成长阶段变更历史编号为"' + _ids + '"的数据项？').then(function() {
     return delKnowledgeaction(_ids);
   }).then(() => {
     getList();

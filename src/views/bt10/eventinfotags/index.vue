@@ -98,7 +98,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改活动与标签多对多关联对话框 -->
+    <!-- 添加或修改积分变动审计对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="eventinfotagsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="活动ID" prop="eventId">
@@ -151,7 +151,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询活动与标签多对多关联列表 */
+/** 查询积分变动审计列表 */
 function getList() {
   loading.value = true;
   listEventinfotags(queryParams.value).then(response => {
@@ -202,7 +202,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加活动与标签多对多关联";
+  title.value = "添加积分变动审计";
 }
 
 /** 修改按钮操作 */
@@ -212,7 +212,7 @@ function handleUpdate(row) {
   getEventinfotags(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改活动与标签多对多关联";
+    title.value = "修改积分变动审计";
   });
 }
 
@@ -240,7 +240,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除活动与标签多对多关联编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除积分变动审计编号为"' + _ids + '"的数据项？').then(function() {
     return delEventinfotags(_ids);
   }).then(() => {
     getList();

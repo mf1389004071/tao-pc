@@ -50,30 +50,6 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input
-            v-model="queryParams.text1"
-            placeholder="请输入扩展文本1"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input
-            v-model="queryParams.text2"
-            placeholder="请输入扩展文本2"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input
-            v-model="queryParams.text3"
-            placeholder="请输入扩展文本3"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -127,7 +103,6 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="商品名称" align="center" prop="name" />
-      <el-table-column label="描述" align="center" prop="remark" />
       <el-table-column label="类型：优惠券/咨询/实物/会员等" align="center" prop="productType" />
       <el-table-column label="兑换所需积分" align="center" prop="pointsRequired" />
       <el-table-column label="库存数量，-1表示不限" align="center" prop="stockQuantity" />
@@ -137,10 +112,6 @@
       <el-table-column label="有效天数" align="center" prop="validDays" />
       <el-table-column label="状态：上架/下架/售罄" align="center" prop="bizStatus" />
       <el-table-column label="排序" align="center" prop="orderNum" />
-      <el-table-column label="扩展文本1" align="center" prop="text1" />
-      <el-table-column label="扩展文本2" align="center" prop="text2" />
-      <el-table-column label="扩展文本3" align="center" prop="text3" />
-      <el-table-column label="扩展JSON" align="center" prop="jsonData" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -159,14 +130,11 @@
       />
     </el-card>
 
-    <!-- 添加或修改积分商城商品对话框 -->
+    <!-- 添加或修改角色和部门关联表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="pointproductRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="商品名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入商品名称" />
-        </el-form-item>
-        <el-form-item label="描述" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
         <el-form-item label="类型：优惠券/咨询/实物/会员等" prop="productType">
           <el-select v-model="form.productType" multiple filterable remote reserve-keyword remote-show-suffix
@@ -200,14 +168,8 @@
         <el-form-item label="排序" prop="orderNum">
           <el-input v-model="form.orderNum" placeholder="请输入排序" />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input v-model="form.text1" placeholder="请输入扩展文本1" />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input v-model="form.text2" placeholder="请输入扩展文本2" />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input v-model="form.text3" placeholder="请输入扩展文本3" />
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -250,11 +212,7 @@ const data = reactive({
     validDays: null,
     bizStatus: null,
     orderNum: null,
-    text1: null,
-    text2: null,
-    text3: null,
-    jsonData: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -262,7 +220,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询积分商城商品列表 */
+/** 查询角色和部门关联表列表 */
 function getList() {
   loading.value = true;
   listPointproduct(queryParams.value).then(response => {
@@ -283,7 +241,6 @@ function reset() {
   form.value = {
     id: null,
     name: null,
-    remark: null,
     productType: null,
     pointsRequired: null,
     stockQuantity: null,
@@ -293,18 +250,19 @@ function reset() {
     validDays: null,
     bizStatus: null,
     orderNum: null,
-    createId: null,
-    updateId: null,
-    deleteId: null,
-    createTime: null,
-    updateTime: null,
-    deleteTime: null,
-    delFlag: null,
     text1: null,
     text2: null,
     text3: null,
     jsonData: null,
-    status: null
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("pointproductRef");
 }
@@ -332,7 +290,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加积分商城商品";
+  title.value = "添加角色和部门关联表";
 }
 
 /** 修改按钮操作 */
@@ -342,7 +300,7 @@ function handleUpdate(row) {
   getPointproduct(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改积分商城商品";
+    title.value = "修改角色和部门关联表";
   });
 }
 
@@ -370,7 +328,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除积分商城商品编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除角色和部门关联表编号为"' + _ids + '"的数据项？').then(function() {
     return delPointproduct(_ids);
   }).then(() => {
     getList();

@@ -161,7 +161,6 @@
       <el-table-column label="变更前贡献点余额" align="center" prop="contribBalanceBefore" />
       <el-table-column label="变更后贡献点余额" align="center" prop="contribBalanceAfter" />
       <el-table-column label="额外上下文(如停留时长、入口渠道等)" align="center" prop="extra" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -180,7 +179,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改用户行为轨迹日志对话框 -->
+    <!-- 添加或修改用户信息画像扩展表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="useractivitylogsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户ID" prop="userId">
@@ -292,7 +291,7 @@ const data = reactive({
     contribBalanceBefore: null,
     contribBalanceAfter: null,
     extra: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -300,7 +299,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询用户行为轨迹日志列表 */
+/** 查询用户信息画像扩展表列表 */
 function getList() {
   loading.value = true;
   listUseractivitylogs(queryParams.value).then(response => {
@@ -335,8 +334,12 @@ function reset() {
     contribBalanceBefore: null,
     contribBalanceAfter: null,
     extra: null,
-    remark: null,
-    status: null
+    createId: null,
+    createBy: null,
+    createTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("useractivitylogsRef");
 }
@@ -364,7 +367,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加用户行为轨迹日志";
+  title.value = "添加用户信息画像扩展表";
 }
 
 /** 修改按钮操作 */
@@ -374,7 +377,7 @@ function handleUpdate(row) {
   getUseractivitylogs(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改用户行为轨迹日志";
+    title.value = "修改用户信息画像扩展表";
   });
 }
 
@@ -402,7 +405,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除用户行为轨迹日志编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除用户信息画像扩展表编号为"' + _ids + '"的数据项？').then(function() {
     return delUseractivitylogs(_ids);
   }).then(() => {
     getList();

@@ -98,7 +98,6 @@
             <span>{{ parseTime(scope.row.readTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -117,7 +116,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改用户站内通知对话框 -->
+    <!-- 添加或修改用户与岗位关联表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="notificationsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="接收用户ID" prop="userId">
@@ -204,7 +203,7 @@ const data = reactive({
     relatedId: null,
     isRead: null,
     readTime: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -212,7 +211,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询用户站内通知列表 */
+/** 查询用户与岗位关联表列表 */
 function getList() {
   loading.value = true;
   listNotifications(queryParams.value).then(response => {
@@ -240,9 +239,15 @@ function reset() {
     relatedId: null,
     isRead: [],
     readTime: null,
+    createId: null,
+    createBy: null,
     createTime: null,
-    remark: null,
-    status: null
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("notificationsRef");
 }
@@ -270,7 +275,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加用户站内通知";
+  title.value = "添加用户与岗位关联表";
 }
 
 /** 修改按钮操作 */
@@ -281,7 +286,7 @@ function handleUpdate(row) {
     form.value = response.data;
     form.value.isRead = form.value.isRead.split(",");
     open.value = true;
-    title.value = "修改用户站内通知";
+    title.value = "修改用户与岗位关联表";
   });
 }
 
@@ -310,7 +315,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除用户站内通知编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除用户与岗位关联表编号为"' + _ids + '"的数据项？').then(function() {
     return delNotifications(_ids);
   }).then(() => {
     getList();

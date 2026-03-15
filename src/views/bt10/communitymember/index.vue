@@ -108,7 +108,6 @@
             <span>{{ parseTime(scope.row.leftTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -127,7 +126,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改社群与用户的成员关系对话框 -->
+    <!-- 添加或修改通用标签定义表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="communitymemberRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="社群ID" prop="communityId">
@@ -195,7 +194,7 @@ const data = reactive({
     bizStatus: null,
     joinedTime: null,
     leftTime: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -203,7 +202,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询社群与用户的成员关系列表 */
+/** 查询通用标签定义表列表 */
 function getList() {
   loading.value = true;
   listCommunitymember(queryParams.value).then(response => {
@@ -229,9 +228,15 @@ function reset() {
     bizStatus: null,
     joinedTime: null,
     leftTime: null,
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
     delFlag: null,
-    remark: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("communitymemberRef");
 }
@@ -259,7 +264,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加社群与用户的成员关系";
+  title.value = "添加通用标签定义表";
 }
 
 /** 修改按钮操作 */
@@ -269,7 +274,7 @@ function handleUpdate(row) {
   getCommunitymember(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改社群与用户的成员关系";
+    title.value = "修改通用标签定义表";
   });
 }
 
@@ -297,7 +302,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除社群与用户的成员关系编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除通用标签定义表编号为"' + _ids + '"的数据项？').then(function() {
     return delCommunitymember(_ids);
   }).then(() => {
     getList();

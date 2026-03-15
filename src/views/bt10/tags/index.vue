@@ -89,7 +89,6 @@
       <el-table-column label="标签类型：ABILITY/INTEREST/INDUSTRY/RESOURCE/NEED等" align="center" prop="tagType" />
       <el-table-column label="标签编码(同类型内唯一)" align="center" prop="code" />
       <el-table-column label="标签名称" align="center" prop="name" />
-      <el-table-column label="标签说明" align="center" prop="remark" />
       <el-table-column label="父标签ID(可选)" align="center" prop="parentId" />
       <el-table-column label="排序" align="center" prop="orderNum" />
       <el-table-column label="状态" align="center" prop="status" />
@@ -110,7 +109,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改通用标签定义表对话框 -->
+    <!-- 添加或修改通用业务数据变更审计对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="tagsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="标签类型：ABILITY/INTEREST/INDUSTRY/RESOURCE/NEED等" prop="tagType">
@@ -130,14 +129,14 @@
         <el-form-item label="标签名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入标签名称" />
         </el-form-item>
-        <el-form-item label="标签说明" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
         <el-form-item label="父标签ID(可选)" prop="parentId">
           <el-input v-model="form.parentId" placeholder="请输入父标签ID(可选)" />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum">
           <el-input v-model="form.orderNum" placeholder="请输入排序" />
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -175,7 +174,7 @@ const data = reactive({
     name: null,
     parentId: null,
     orderNum: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -183,7 +182,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询通用标签定义表列表 */
+/** 查询通用业务数据变更审计列表 */
 function getList() {
   loading.value = true;
   listTags(queryParams.value).then(response => {
@@ -206,14 +205,17 @@ function reset() {
     tagType: null,
     code: null,
     name: null,
-    remark: null,
     parentId: null,
     orderNum: null,
     createId: null,
-    updateId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
     updateTime: null,
-    status: null
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("tagsRef");
 }
@@ -241,7 +243,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加通用标签定义表";
+  title.value = "添加通用业务数据变更审计";
 }
 
 /** 修改按钮操作 */
@@ -251,7 +253,7 @@ function handleUpdate(row) {
   getTags(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改通用标签定义表";
+    title.value = "修改通用业务数据变更审计";
   });
 }
 
@@ -279,7 +281,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除通用标签定义表编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除通用业务数据变更审计编号为"' + _ids + '"的数据项？').then(function() {
     return delTags(_ids);
   }).then(() => {
     getList();

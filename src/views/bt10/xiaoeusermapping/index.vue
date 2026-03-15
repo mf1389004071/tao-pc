@@ -34,14 +34,6 @@
             placeholder="请选择建立映射时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="最后更新时间" prop="lastUpdateTime">
-          <el-date-picker clearable
-            v-model="queryParams.lastUpdateTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择最后更新时间">
-          </el-date-picker>
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -103,12 +95,6 @@
             <span>{{ parseTime(scope.row.mappedTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="最后更新时间" align="center" prop="lastUpdateTime" width="180">
-          <template #default="scope">
-            <span>{{ parseTime(scope.row.lastUpdateTime, '{y}-{m}-{d}') }}</span>
-          </template>
-        </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -158,14 +144,6 @@
             placeholder="请选择建立映射时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="最后更新时间" prop="lastUpdateTime">
-          <el-date-picker clearable
-            v-model="form.lastUpdateTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择最后更新时间">
-          </el-date-picker>
-        </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
@@ -205,8 +183,7 @@ const data = reactive({
     mappingType: null,
     confidenceScore: null,
     mappedTime: null,
-    lastUpdateTime: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -239,11 +216,15 @@ function reset() {
     mappingType: null,
     confidenceScore: null,
     mappedTime: null,
-    lastUpdateTime: null,
+    createId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
     updateTime: null,
-    remark: null,
-    status: null
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("xiaoeusermappingRef");
 }

@@ -42,30 +42,6 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input
-            v-model="queryParams.text1"
-            placeholder="请输入扩展文本1"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input
-            v-model="queryParams.text2"
-            placeholder="请输入扩展文本2"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input
-            v-model="queryParams.text3"
-            placeholder="请输入扩展文本3"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -119,7 +95,6 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="社群名称" align="center" prop="name" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建者(合伙人)用户ID" align="center" prop="ownerId" />
       <el-table-column label="是否公开可见" align="center" prop="isPublic" />
       <el-table-column label="最大成员数" align="center" prop="maxMembers" />
@@ -127,10 +102,6 @@
       <el-table-column label="封面图" align="center" prop="coverImageUrl" />
       <el-table-column label="所在城市" align="center" prop="city" />
       <el-table-column label="状态：正常/已归档/已解散" align="center" prop="bizStatus" />
-      <el-table-column label="扩展文本1" align="center" prop="text1" />
-      <el-table-column label="扩展文本2" align="center" prop="text2" />
-      <el-table-column label="扩展文本3" align="center" prop="text3" />
-      <el-table-column label="扩展JSON" align="center" prop="jsonData" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -155,9 +126,6 @@
         <el-form-item label="社群名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入社群名称" />
         </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
         <el-form-item label="创建者(合伙人)用户ID" prop="ownerId">
           <el-input v-model="form.ownerId" placeholder="请输入创建者(合伙人)用户ID" />
         </el-form-item>
@@ -173,14 +141,8 @@
         <el-form-item label="所在城市" prop="city">
           <el-input v-model="form.city" placeholder="请输入所在城市" />
         </el-form-item>
-        <el-form-item label="扩展文本1" prop="text1">
-          <el-input v-model="form.text1" placeholder="请输入扩展文本1" />
-        </el-form-item>
-        <el-form-item label="扩展文本2" prop="text2">
-          <el-input v-model="form.text2" placeholder="请输入扩展文本2" />
-        </el-form-item>
-        <el-form-item label="扩展文本3" prop="text3">
-          <el-input v-model="form.text3" placeholder="请输入扩展文本3" />
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -221,11 +183,7 @@ const data = reactive({
     coverImageUrl: null,
     city: null,
     bizStatus: null,
-    text1: null,
-    text2: null,
-    text3: null,
-    jsonData: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -254,7 +212,6 @@ function reset() {
   form.value = {
     id: null,
     name: null,
-    remark: null,
     ownerId: null,
     isPublic: [],
     maxMembers: null,
@@ -262,18 +219,21 @@ function reset() {
     coverImageUrl: null,
     city: null,
     bizStatus: null,
-    createId: null,
-    updateId: null,
-    deleteId: null,
-    createTime: null,
-    updateTime: null,
-    deleteTime: null,
-    delFlag: null,
     text1: null,
     text2: null,
     text3: null,
     jsonData: null,
-    status: null
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    deleteId: null,
+    deleteTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("communityinfoRef");
 }

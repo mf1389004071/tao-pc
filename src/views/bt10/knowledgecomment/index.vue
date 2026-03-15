@@ -93,7 +93,6 @@
       <el-table-column label="点赞数" align="center" prop="likeCount" />
       <el-table-column label="是否置顶" align="center" prop="isPinned" />
       <el-table-column label="状态：已发布/隐藏" align="center" prop="bizStatus" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -112,7 +111,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改知识内容评论与回复，支持楼中楼与置顶对话框 -->
+    <!-- 添加或修改知识内容评论与回复对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="knowledgecommentRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="知识内容ID" prop="contentId">
@@ -129,9 +128,6 @@
         </el-form-item>
         <el-form-item label="点赞数" prop="likeCount">
           <el-input v-model="form.likeCount" placeholder="请输入点赞数" />
-        </el-form-item>
-        <el-form-item label="更新者ID" prop="updateId">
-          <el-input v-model="form.updateId" placeholder="请输入更新者ID" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -174,7 +170,7 @@ const data = reactive({
     likeCount: null,
     isPinned: null,
     bizStatus: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -182,7 +178,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询知识内容评论与回复，支持楼中楼与置顶列表 */
+/** 查询知识内容评论与回复列表 */
 function getList() {
   loading.value = true;
   listKnowledgecomment(queryParams.value).then(response => {
@@ -210,14 +206,14 @@ function reset() {
     isPinned: [],
     bizStatus: null,
     createId: null,
-    updateId: null,
-    deleteId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
     updateTime: null,
-    deleteTime: null,
+    status: null,
     delFlag: null,
-    remark: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("knowledgecommentRef");
 }
@@ -245,7 +241,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加知识内容评论与回复，支持楼中楼与置顶";
+  title.value = "添加知识内容评论与回复";
 }
 
 /** 修改按钮操作 */
@@ -256,7 +252,7 @@ function handleUpdate(row) {
     form.value = response.data;
     form.value.isPinned = form.value.isPinned.split(",");
     open.value = true;
-    title.value = "修改知识内容评论与回复，支持楼中楼与置顶";
+    title.value = "修改知识内容评论与回复";
   });
 }
 
@@ -285,7 +281,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除知识内容评论与回复，支持楼中楼与置顶编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除知识内容评论与回复编号为"' + _ids + '"的数据项？').then(function() {
     return delKnowledgecomment(_ids);
   }).then(() => {
     getList();

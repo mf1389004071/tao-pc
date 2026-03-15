@@ -107,7 +107,6 @@
       <el-table-column label="本次变动金额" align="center" prop="amount" />
       <el-table-column label="变动前贡献点余额" align="center" prop="balanceBefore" />
       <el-table-column label="变动后贡献点余额" align="center" prop="balanceAfter" />
-      <el-table-column label="说明" align="center" prop="remark" />
       <el-table-column label="关联业务类型" align="center" prop="relatedType" />
       <el-table-column label="关联业务ID" align="center" prop="relatedId" />
       <el-table-column label="支付单号" align="center" prop="paymentNo" />
@@ -129,7 +128,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改用户贡献点收支流水对话框 -->
+    <!-- 添加或修改用户对知识内容的行为记录对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="usercontriblogsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户ID(sys_user.user_id)" prop="userId">
@@ -155,9 +154,6 @@
         <el-form-item label="变动后贡献点余额" prop="balanceAfter">
           <el-input v-model="form.balanceAfter" placeholder="请输入变动后贡献点余额" />
         </el-form-item>
-        <el-form-item label="说明" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
         <el-form-item label="关联业务类型" prop="relatedType">
           <el-select v-model="form.relatedType" multiple filterable remote reserve-keyword remote-show-suffix
             placeholder="请选择关联业务类型"
@@ -174,6 +170,9 @@
         </el-form-item>
         <el-form-item label="支付单号" prop="paymentNo">
           <el-input v-model="form.paymentNo" placeholder="请输入支付单号" />
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -214,7 +213,7 @@ const data = reactive({
     relatedType: null,
     relatedId: null,
     paymentNo: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -222,7 +221,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询用户贡献点收支流水列表 */
+/** 查询用户对知识内容的行为记录列表 */
 function getList() {
   loading.value = true;
   listUsercontriblogs(queryParams.value).then(response => {
@@ -247,13 +246,18 @@ function reset() {
     amount: null,
     balanceBefore: null,
     balanceAfter: null,
-    remark: null,
     relatedType: null,
     relatedId: null,
     paymentNo: null,
-    delFlag: null,
+    createId: null,
+    createBy: null,
     createTime: null,
-    status: null
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("usercontriblogsRef");
 }
@@ -281,7 +285,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加用户贡献点收支流水";
+  title.value = "添加用户对知识内容的行为记录";
 }
 
 /** 修改按钮操作 */
@@ -291,7 +295,7 @@ function handleUpdate(row) {
   getUsercontriblogs(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改用户贡献点收支流水";
+    title.value = "修改用户对知识内容的行为记录";
   });
 }
 
@@ -319,7 +323,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除用户贡献点收支流水编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除用户对知识内容的行为记录编号为"' + _ids + '"的数据项？').then(function() {
     return delUsercontriblogs(_ids);
   }).then(() => {
     getList();

@@ -110,7 +110,6 @@
         </el-table-column>
       <el-table-column label="来源类型：PAYMENT/EVENT/MANUAL等" align="center" prop="sourceType" />
       <el-table-column label="来源业务ID(如支付订单ID)" align="center" prop="sourceId" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -210,7 +209,7 @@ const data = reactive({
     expiredTime: null,
     sourceType: null,
     sourceId: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -246,11 +245,15 @@ function reset() {
     expiredTime: null,
     sourceType: null,
     sourceId: null,
+    createId: null,
+    createBy: null,
     createTime: null,
+    updateId: null,
+    updateBy: null,
     updateTime: null,
-    remark: null,
+    status: null,
     delFlag: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("useridentitiesRef");
 }

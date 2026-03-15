@@ -123,8 +123,6 @@
       <el-table-column label="发放方式：AUTO/MANUAL/COUPON等" align="center" prop="grantMethod" />
       <el-table-column label="关联业务类型：EVENT/COURSE/IDENTITY/POINT_PRODUCT等" align="center" prop="relatedType" />
       <el-table-column label="关联业务ID" align="center" prop="relatedId" />
-      <el-table-column label="扩展JSON，如可转让规则等" align="center" prop="jsonData" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -143,7 +141,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改统一支付订单明细表对话框 -->
+    <!-- 添加或修改用户站内通知对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="paymentitemsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="支付订单ID" prop="paymentId">
@@ -236,8 +234,7 @@ const data = reactive({
     grantMethod: null,
     relatedType: null,
     relatedId: null,
-    jsonData: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -245,7 +242,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询统一支付订单明细表列表 */
+/** 查询用户站内通知列表 */
 function getList() {
   loading.value = true;
   listPaymentitems(queryParams.value).then(response => {
@@ -279,10 +276,15 @@ function reset() {
     relatedType: null,
     relatedId: null,
     jsonData: null,
+    createId: null,
+    createBy: null,
     createTime: null,
-    remark: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
     delFlag: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("paymentitemsRef");
 }
@@ -310,7 +312,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加统一支付订单明细表";
+  title.value = "添加用户站内通知";
 }
 
 /** 修改按钮操作 */
@@ -323,7 +325,7 @@ function handleUpdate(row) {
     form.value.isTransferable = form.value.isTransferable.split(",");
     form.value.canBuyForOthers = form.value.canBuyForOthers.split(",");
     open.value = true;
-    title.value = "修改统一支付订单明细表";
+    title.value = "修改用户站内通知";
   });
 }
 
@@ -354,7 +356,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除统一支付订单明细表编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除用户站内通知编号为"' + _ids + '"的数据项？').then(function() {
     return delPaymentitems(_ids);
   }).then(() => {
     getList();

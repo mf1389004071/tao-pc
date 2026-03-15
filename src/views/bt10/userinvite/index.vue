@@ -114,7 +114,6 @@
       <el-table-column label="邀请人是否已领取奖励" align="center" prop="rewardClaimed" />
       <el-table-column label="邀请奖励积分" align="center" prop="rewardPoints" />
       <el-table-column label="邀请奖励贡献点" align="center" prop="rewardContrib" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -237,9 +236,15 @@ function reset() {
     rewardClaimed: [],
     rewardPoints: null,
     rewardContrib: null,
-    remark: null,
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
     status: null,
-    delFlag: null
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("userinviteRef");
 }

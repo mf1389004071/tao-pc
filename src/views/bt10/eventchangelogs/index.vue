@@ -99,8 +99,6 @@
           </template>
         </el-table-column>
       <el-table-column label="扩展信息" align="center" prop="metadata" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:eventchangelogs:edit']">修改</el-button>
@@ -118,7 +116,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改活动关键信息变更记录对话框 -->
+    <!-- 添加或修改活动所需角色对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="eventchangelogsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="活动ID" prop="eventId">
@@ -201,7 +199,6 @@ const data = reactive({
     operatorType: null,
     changedTime: null,
     metadata: null,
-    status: null
   },
   rules: {
   }
@@ -209,7 +206,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询活动关键信息变更记录列表 */
+/** 查询活动所需角色列表 */
 function getList() {
   loading.value = true;
   listEventchangelogs(queryParams.value).then(response => {
@@ -238,8 +235,7 @@ function reset() {
     operatorType: null,
     changedTime: null,
     metadata: null,
-    remark: null,
-    status: null
+    remark: null
   };
   proxy.resetForm("eventchangelogsRef");
 }
@@ -267,7 +263,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加活动关键信息变更记录";
+  title.value = "添加活动所需角色";
 }
 
 /** 修改按钮操作 */
@@ -277,7 +273,7 @@ function handleUpdate(row) {
   getEventchangelogs(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改活动关键信息变更记录";
+    title.value = "修改活动所需角色";
   });
 }
 
@@ -305,7 +301,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除活动关键信息变更记录编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除活动所需角色编号为"' + _ids + '"的数据项？').then(function() {
     return delEventchangelogs(_ids);
   }).then(() => {
     getList();

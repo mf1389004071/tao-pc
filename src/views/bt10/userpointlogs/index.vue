@@ -114,7 +114,6 @@
             <span>{{ parseTime(scope.row.expiredTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -259,10 +258,15 @@ function reset() {
     relatedType: null,
     relatedId: null,
     expiredTime: null,
-    remark: null,
-    delFlag: null,
+    createId: null,
+    createBy: null,
+    createTime: null,
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
     status: null,
-    createTime: null
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("userpointlogsRef");
 }

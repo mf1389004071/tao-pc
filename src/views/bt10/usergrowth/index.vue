@@ -83,7 +83,6 @@
       <el-table-column label="新阶段" align="center" prop="stageTo" />
       <el-table-column label="触发方式：自动/手动/任务完成等" align="center" prop="triggerType" />
       <el-table-column label="触发上下文数据" align="center" prop="triggerData" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="状态" align="center" prop="status" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
@@ -102,7 +101,7 @@
       />
     </el-card>
 
-    <!-- 添加或修改用户成长阶段变更历史对话框 -->
+    <!-- 添加或修改音视频转写与AI摘要对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="usergrowthRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户ID(sys_user.user_id)" prop="userId">
@@ -164,7 +163,7 @@ const data = reactive({
     stageTo: null,
     triggerType: null,
     triggerData: null,
-    status: null
+    status: null,
   },
   rules: {
   }
@@ -172,7 +171,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询用户成长阶段变更历史列表 */
+/** 查询音视频转写与AI摘要列表 */
 function getList() {
   loading.value = true;
   listUsergrowth(queryParams.value).then(response => {
@@ -197,10 +196,15 @@ function reset() {
     stageTo: null,
     triggerType: null,
     triggerData: null,
-    delFlag: null,
+    createId: null,
+    createBy: null,
     createTime: null,
-    remark: null,
-    status: null
+    updateId: null,
+    updateBy: null,
+    updateTime: null,
+    status: null,
+    delFlag: null,
+    remark: null
   };
   proxy.resetForm("usergrowthRef");
 }
@@ -228,7 +232,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加用户成长阶段变更历史";
+  title.value = "添加音视频转写与AI摘要";
 }
 
 /** 修改按钮操作 */
@@ -238,7 +242,7 @@ function handleUpdate(row) {
   getUsergrowth(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改用户成长阶段变更历史";
+    title.value = "修改音视频转写与AI摘要";
   });
 }
 
@@ -266,7 +270,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除用户成长阶段变更历史编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除音视频转写与AI摘要编号为"' + _ids + '"的数据项？').then(function() {
     return delUsergrowth(_ids);
   }).then(() => {
     getList();
