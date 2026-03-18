@@ -165,7 +165,9 @@
         </el-table-column>
         <el-table-column label="状态" align="center" prop="status" width="80">
           <template #default="scope">
-            <dict-tag v-if="scope.row.status != null && scope.row.status !== ''" :options="sysNormalDisable" :value="scope.row.status" />
+            <span v-if="scope.row.status != null && scope.row.status !== ''">
+              {{ statusOptions.find(o => o.value === scope.row.status)?.label ?? scope.row.status }}
+            </span>
             <span v-else>—</span>
           </template>
         </el-table-column>
@@ -391,39 +393,24 @@
 
 <script setup name="Eventinfo">
 import { listEventinfo, getEventinfo, delEventinfo, addEventinfo, updateEventinfo } from "@/api/bt10/eventinfo";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS, BT10_STATUS_KEYS } from "@/utils/Bt10Helper";
 import { listTags } from "@/api/bt10/tags";
 import Editor from "@/components/Editor";
 import { regionData, codeToText } from "element-china-area-data";
 
 const { proxy } = getCurrentInstance();
-const { 活动分类: eventCategoryDict, sys_normal_disable: sysNormalDisable } = proxy.useDict("活动分类", "sys_normal_disable");
+const { event_category: eventCategoryDict } = proxy.useDict("event_category");
 
 const uploadUrl = import.meta.env.VITE_APP_BASE_API + "/file/upload";
 
-// 参与方式枚举（必填）
-const joinTypeOptions = [
-  { value: 'ONLINE', label: '线上' },
-  { value: 'OFFLINE', label: '线下' },
-  { value: 'MIXED', label: '混合' }
-];
-// 活动类型枚举（必填）
-const eventTypeOptions = [
-  { value: 'WORKSHOP', label: '工作坊' },
-  { value: 'COURSE', label: '课程' },
-  { value: 'MEETUP', label: '见面会' },
-  { value: 'LIVE', label: '直播' },
-  { value: 'OTHER', label: '其他' }
-];
-// 业务状态：草稿/已发布/报名中/已满/进行中/已结束/已取消
-const bizStatusOptions = [
-  { value: 'DRAFT', label: '草稿' },
-  { value: 'PUBLISHED', label: '已发布' },
-  { value: 'REGISTRATION', label: '报名中' },
-  { value: 'FULL', label: '已满' },
-  { value: 'ONGOING', label: '进行中' },
-  { value: 'ENDED', label: '已结束' },
-  { value: 'CANCELLED', label: '已取消' }
-];
+// 参与方式枚举（必填）——从后端 Enums.EventJoinType 接口动态获取
+const joinTypeOptions = ref([]);
+// 活动类型枚举（必填）——从后端 Enums.EventType 接口动态获取，并做本地缓存
+const eventTypeOptions = ref([]);
+// 业务状态（Status.Event：草稿/已发布/报名中/已满/进行中/已结束/已取消）
+const bizStatusOptions = ref([]);
+// 通用状态（Enums.Status：0正常/1停用/2删除）
+const statusOptions = ref([]);
 const isPublicMap = { true: '是', false: '否', '1': '是', '0': '否' };
 
 // 省市区级联（element-china-area-data，值为区域码；存储为逗号分隔 code，展示用 codeToText）
@@ -487,6 +474,23 @@ function getList() {
     eventinfoList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+// 加载 bt10 枚举（参与方式、活动类型、通用状态）与业务状态，并缓存到当前页面
+function loadBt10Enums() {
+  // 第一步：优先从本地缓存按 key 读取（页面不刷新情况下效果最好）
+  joinTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.EVENT_JOIN_TYPE);
+  eventTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.EVENT_TYPE);
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  bizStatusOptions.value = getBt10OptionsFromCache(BT10_STATUS_KEYS.EVENT, true);
+
+  // 第二步：确保后端枚举 / 状态已加载并写入本地缓存，然后再按 key 读一遍，刷新为最新值
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    joinTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.EVENT_JOIN_TYPE);
+    eventTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.EVENT_TYPE);
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    bizStatusOptions.value = getBt10OptionsFromCache(BT10_STATUS_KEYS.EVENT, true);
   });
 }
 
@@ -700,7 +704,10 @@ function handleExport() {
   }, `eventinfo_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+// 页面初始化：先加载枚举，再拉列表，保证活动类型等下拉/展示有 label
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>
 
 <style scoped>
