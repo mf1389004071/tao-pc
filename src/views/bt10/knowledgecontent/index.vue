@@ -26,26 +26,26 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="作者用户ID" prop="authorId">
-          <el-input
+        <el-form-item label="作者用户" prop="authorId">
+          <UserSelect
             v-model="queryParams.authorId"
-            placeholder="请输入作者用户ID"
+            placeholder="请选择作者用户"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="创始人/发起人ID" prop="founderId">
-          <el-input
+        <el-form-item label="创始人/发起人" prop="founderId">
+          <UserSelect
             v-model="queryParams.founderId"
-            placeholder="请输入创始人/发起人ID"
+            placeholder="请选择创始人/发起人"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="内容负责人ID" prop="managerId">
-          <el-input
+        <el-form-item label="内容负责人" prop="managerId">
+          <UserSelect
             v-model="queryParams.managerId"
-            placeholder="请输入内容负责人ID"
+            placeholder="请选择内容负责人"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -59,44 +59,19 @@
           </el-date-picker>
         </el-form-item>
         <el-form-item label="浏览次数" prop="viewCount">
-          <el-input
-            v-model="queryParams.viewCount"
-            placeholder="请输入浏览次数"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.viewCount" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="点赞数" prop="likeCount">
-          <el-input
-            v-model="queryParams.likeCount"
-            placeholder="请输入点赞数"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.likeCount" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="评论数" prop="commentCount">
-          <el-input
-            v-model="queryParams.commentCount"
-            placeholder="请输入评论数"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.commentCount" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="分享数" prop="shareCount">
-          <el-input
-            v-model="queryParams.shareCount"
-            placeholder="请输入分享数"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.shareCount" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="收藏数" prop="collectCount">
-          <el-input
-            v-model="queryParams.collectCount"
-            placeholder="请输入收藏数"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.collectCount" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="SEO标题" prop="seoTitle">
           <el-input
@@ -123,12 +98,7 @@
           />
         </el-form-item>
         <el-form-item label="难度等级" prop="difficultyLevel">
-          <el-input
-            v-model="queryParams.difficultyLevel"
-            placeholder="请输入难度等级"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.difficultyLevel" :min="1" :max="5" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -185,16 +155,30 @@
       <el-table-column label="标题" align="center" prop="title" />
       <el-table-column label="副标题" align="center" prop="subtitle" />
       <el-table-column label="正文内容" align="center" prop="content" />
-      <el-table-column label="类型：文章/工具/案例/Wiki等" align="center" prop="contentType" />
+      <el-table-column label="内容类型" align="center" prop="contentType">
+        <template #default="scope">
+          {{ getOptionLabel(contentTypeOptions, scope.row.contentType) }}
+        </template>
+      </el-table-column>
       <el-table-column label="所属分类ID" align="center" prop="categoryId" />
-      <el-table-column label="作者用户ID" align="center" prop="authorId" />
-      <el-table-column label="创始人/发起人ID" align="center" prop="founderId" />
-      <el-table-column label="重点贡献人(逗号分隔)" align="center" prop="keyContributors" />
-      <el-table-column label="内容负责人ID" align="center" prop="managerId" />
+      <el-table-column label="作者用户" align="center" prop="authorId" />
+      <el-table-column label="创始人/发起人" align="center" prop="founderId" />
+      <el-table-column label="重点贡献人" align="center" prop="keyContributors">
+        <template #header>
+          重点贡献人
+          <LabelHint content="逗号分隔" />
+        </template>
+      </el-table-column>
+      <el-table-column label="内容负责人" align="center" prop="managerId" />
       <el-table-column label="宣传语" align="center" prop="promotionalText" />
       <el-table-column label="核心价值观描述" align="center" prop="coreValues" />
-      <el-table-column label="标签(逗号分隔)" align="center" prop="tags" />
-      <el-table-column label="状态：草稿/审核中/已发布/归档/已删" align="center" prop="bizStatus" />
+      <el-table-column label="标签" align="center" prop="tags">
+        <template #header>
+          标签
+          <LabelHint content="逗号分隔" />
+        </template>
+      </el-table-column>
+      <el-table-column label="业务状态" align="center" prop="bizStatus" />
         <el-table-column label="发布时间" align="center" prop="publishTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.publishTime, '{y}-{m}-{d}') }}</span>
@@ -211,7 +195,11 @@
       <el-table-column label="来源" align="center" prop="sourceFrom" />
       <el-table-column label="难度等级" align="center" prop="difficultyLevel" />
       <el-table-column label="AI生成摘要" align="center" prop="aiSummary" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:knowledgecontent:edit']">修改</el-button>
@@ -230,96 +218,51 @@
     </el-card>
 
     <!-- 添加或修改知识库内容对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="960px" append-to-body>
       <el-form ref="knowledgecontentRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="标题" prop="title">
-          <el-input v-model="form.title" placeholder="请输入标题" />
-        </el-form-item>
-        <el-form-item label="副标题" prop="subtitle">
-          <el-input v-model="form.subtitle" placeholder="请输入副标题" />
-        </el-form-item>
-        <el-form-item label="正文内容">
-          <editor v-model="form.content" :min-height="192"/>
-        </el-form-item>
-        <el-form-item label="类型：文章/工具/案例/Wiki等" prop="contentType">
-          <el-select v-model="form.contentType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择类型：文章/工具/案例/Wiki等"
-            :remote-method="remoteMethodContentType"
-            :loading="loadingContentType"
-          >
-            <el-option v-for="item in optionsContentType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="所属分类ID" prop="categoryId">
-          <el-input v-model="form.categoryId" placeholder="请输入所属分类ID" />
-        </el-form-item>
-        <el-form-item label="作者用户ID" prop="authorId">
-          <el-input v-model="form.authorId" placeholder="请输入作者用户ID" />
-        </el-form-item>
-        <el-form-item label="创始人/发起人ID" prop="founderId">
-          <el-input v-model="form.founderId" placeholder="请输入创始人/发起人ID" />
-        </el-form-item>
-        <el-form-item label="重点贡献人(逗号分隔)" prop="keyContributors">
-          <el-input v-model="form.keyContributors" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="内容负责人ID" prop="managerId">
-          <el-input v-model="form.managerId" placeholder="请输入内容负责人ID" />
-        </el-form-item>
-        <el-form-item label="宣传语" prop="promotionalText">
-          <el-input v-model="form.promotionalText" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="核心价值观描述" prop="coreValues">
-          <el-input v-model="form.coreValues" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="标签(逗号分隔)" prop="tags">
-          <el-input v-model="form.tags" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="发布时间" prop="publishTime">
-          <el-date-picker clearable
-            v-model="form.publishTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择发布时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="浏览次数" prop="viewCount">
-          <el-input v-model="form.viewCount" placeholder="请输入浏览次数" />
-        </el-form-item>
-        <el-form-item label="点赞数" prop="likeCount">
-          <el-input v-model="form.likeCount" placeholder="请输入点赞数" />
-        </el-form-item>
-        <el-form-item label="评论数" prop="commentCount">
-          <el-input v-model="form.commentCount" placeholder="请输入评论数" />
-        </el-form-item>
-        <el-form-item label="分享数" prop="shareCount">
-          <el-input v-model="form.shareCount" placeholder="请输入分享数" />
-        </el-form-item>
-        <el-form-item label="收藏数" prop="collectCount">
-          <el-input v-model="form.collectCount" placeholder="请输入收藏数" />
-        </el-form-item>
-        <el-form-item label="SEO标题" prop="seoTitle">
-          <el-input v-model="form.seoTitle" placeholder="请输入SEO标题" />
-        </el-form-item>
-        <el-form-item label="SEO描述" prop="seoDescription">
-          <el-input v-model="form.seoDescription" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="SEO关键词" prop="seoKeywords">
-          <el-input v-model="form.seoKeywords" placeholder="请输入SEO关键词" />
-        </el-form-item>
-        <el-form-item label="来源" prop="sourceFrom">
-          <el-input v-model="form.sourceFrom" placeholder="请输入来源" />
-        </el-form-item>
-        <el-form-item label="难度等级" prop="difficultyLevel">
-          <el-input v-model="form.difficultyLevel" placeholder="请输入难度等级" />
-        </el-form-item>
-        <el-form-item label="AI生成摘要" prop="aiSummary">
-          <el-input v-model="form.aiSummary" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="8"><el-form-item label="标题" prop="title"><el-input v-model="form.title" placeholder="请输入标题" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="副标题" prop="subtitle"><el-input v-model="form.subtitle" placeholder="请输入副标题" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="正文内容"><editor v-model="form.content" :min-height="192"/></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="内容类型" prop="contentType"><el-select v-model="form.contentType" placeholder="请选择内容类型" clearable filterable style="width: 100%"><el-option v-for="item in contentTypeOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="所属分类ID" prop="categoryId"><el-input v-model="form.categoryId" placeholder="请输入所属分类ID" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="作者用户" prop="authorId"><UserSelect v-model="form.authorId" placeholder="请选择作者用户" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="创始人/发起人" prop="founderId"><UserSelect v-model="form.founderId" placeholder="请选择创始人/发起人" /></el-form-item></el-col>
+          <el-col :span="24">
+            <el-form-item prop="keyContributors">
+              <template #label>
+                重点贡献人
+                <LabelHint content="逗号分隔" />
+              </template>
+              <el-input v-model="form.keyContributors" type="textarea" placeholder="请输入内容" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8"><el-form-item label="内容负责人" prop="managerId"><UserSelect v-model="form.managerId" placeholder="请选择内容负责人" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="宣传语" prop="promotionalText"><el-input v-model="form.promotionalText" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="核心价值观描述" prop="coreValues"><el-input v-model="form.coreValues" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="24">
+            <el-form-item prop="tags">
+              <template #label>
+                标签
+                <LabelHint content="逗号分隔" />
+              </template>
+              <el-input v-model="form.tags" type="textarea" placeholder="请输入内容" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8"><el-form-item label="发布时间" prop="publishTime"><el-date-picker clearable v-model="form.publishTime" type="date" value-format="YYYY-MM-DD" placeholder="请选择发布时间" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="浏览次数" prop="viewCount"><el-input-number v-model="form.viewCount" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="点赞数" prop="likeCount"><el-input-number v-model="form.likeCount" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="评论数" prop="commentCount"><el-input-number v-model="form.commentCount" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="分享数" prop="shareCount"><el-input-number v-model="form.shareCount" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="收藏数" prop="collectCount"><el-input-number v-model="form.collectCount" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="SEO标题" prop="seoTitle"><el-input v-model="form.seoTitle" placeholder="请输入SEO标题" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="SEO描述" prop="seoDescription"><el-input v-model="form.seoDescription" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="SEO关键词" prop="seoKeywords"><el-input v-model="form.seoKeywords" placeholder="请输入SEO关键词" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="来源" prop="sourceFrom"><el-input v-model="form.sourceFrom" placeholder="请输入来源" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="难度等级" prop="difficultyLevel"><el-input-number v-model="form.difficultyLevel" :min="1" :max="5" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="AI生成摘要" prop="aiSummary"><el-input v-model="form.aiSummary" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="备注" prop="remark"><el-input v-model="form.remark" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -333,6 +276,8 @@
 
 <script setup name="Knowledgecontent">
 import { listKnowledgecontent, getKnowledgecontent, delKnowledgecontent, addKnowledgecontent, updateKnowledgecontent } from "@/api/bt10/knowledgecontent";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
+import LabelHint from "@/components/LabelHint";
 
 const { proxy } = getCurrentInstance();
 
@@ -345,6 +290,9 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
+const contentTypeOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -391,6 +339,20 @@ function getList() {
     knowledgecontentList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  contentTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.KNOWLEDGE_CONTENT_TYPE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    contentTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.KNOWLEDGE_CONTENT_TYPE);
   });
 }
 
@@ -477,9 +439,12 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getKnowledgecontent(_id).then(response => {
     form.value = response.data;
+    form.value.authorId = form.value.authorId == null ? null : String(form.value.authorId);
+    form.value.founderId = form.value.founderId == null ? null : String(form.value.founderId);
+    form.value.managerId = form.value.managerId == null ? null : String(form.value.managerId);
     open.value = true;
     title.value = "修改知识库内容";
   });
@@ -489,6 +454,9 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["knowledgecontentRef"].validate(valid => {
     if (valid) {
+      form.value.authorId = form.value.authorId == null || form.value.authorId === '' ? null : String(form.value.authorId);
+      form.value.founderId = form.value.founderId == null || form.value.founderId === '' ? null : String(form.value.founderId);
+      form.value.managerId = form.value.managerId == null || form.value.managerId === '' ? null : String(form.value.managerId);
       if (form.value.id != null) {
         updateKnowledgecontent(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -508,7 +476,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除知识库内容编号为"' + _ids + '"的数据项？').then(function() {
     return delKnowledgecontent(_ids);
   }).then(() => {
@@ -526,5 +494,7 @@ function handleExport() {
   }, `knowledgecontent_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

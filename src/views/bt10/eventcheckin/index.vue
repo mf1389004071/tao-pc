@@ -10,10 +10,14 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="场次ID(周期活动时用)" prop="sessionId">
+        <el-form-item prop="sessionId">
+          <template #label>
+            场次
+            <LabelHint content="周期活动时用" />
+          </template>
           <el-input
             v-model="queryParams.sessionId"
-            placeholder="请输入场次ID(周期活动时用)"
+            placeholder="请输入场次"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -26,18 +30,19 @@
             placeholder="请选择签到时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="签到方式：二维码/定位/手动" prop="checkInMethod">
-          <el-input
-            v-model="queryParams.checkInMethod"
-            placeholder="请输入签到方式：二维码/定位/手动"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="签到方式" prop="checkInMethod">
+          <el-select v-model="queryParams.checkInMethod" placeholder="请选择签到方式" clearable filterable style="width: 180px">
+            <el-option v-for="item in checkInMethodOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="操作人ID(手动签到时)" prop="operatorId">
-          <el-input
+        <el-form-item prop="operatorId">
+          <template #label>
+            操作人
+            <LabelHint content="手动签到时" />
+          </template>
+          <UserSelect
             v-model="queryParams.operatorId"
-            placeholder="请输入操作人ID(手动签到时)"
+            placeholder="请选择操作人"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -95,16 +100,24 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="报名记录ID" align="center" prop="joinId" />
-      <el-table-column label="场次ID(周期活动时用)" align="center" prop="sessionId" />
+      <el-table-column label="场次" align="center" prop="sessionId" />
         <el-table-column label="签到时间" align="center" prop="checkInTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.checkInTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="签到方式：二维码/定位/手动" align="center" prop="checkInMethod" />
+      <el-table-column label="签到方式" align="center" prop="checkInMethod">
+        <template #default="scope">
+          {{ getOptionLabel(checkInMethodOptions, scope.row.checkInMethod) }}
+        </template>
+      </el-table-column>
       <el-table-column label="签到位置" align="center" prop="checkInLocation" />
-      <el-table-column label="操作人ID(手动签到时)" align="center" prop="operatorId" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="操作人" align="center" prop="operatorId" />
+      <el-table-column label="状态" align="center" prop="status">
+        <template #default="scope">
+          {{ getOptionLabel(statusOptions, scope.row.status) }}
+        </template>
+      </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:eventcheckin:edit']">修改</el-button>
@@ -128,8 +141,12 @@
         <el-form-item label="报名记录ID" prop="joinId">
           <el-input v-model="form.joinId" placeholder="请输入报名记录ID" />
         </el-form-item>
-        <el-form-item label="场次ID(周期活动时用)" prop="sessionId">
-          <el-input v-model="form.sessionId" placeholder="请输入场次ID(周期活动时用)" />
+        <el-form-item prop="sessionId">
+          <template #label>
+            场次
+            <LabelHint content="周期活动时用" />
+          </template>
+          <el-input v-model="form.sessionId" placeholder="请输入场次" />
         </el-form-item>
         <el-form-item label="签到时间" prop="checkInTime">
           <el-date-picker clearable
@@ -139,11 +156,17 @@
             placeholder="请选择签到时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="签到方式：二维码/定位/手动" prop="checkInMethod">
-          <el-input v-model="form.checkInMethod" placeholder="请输入签到方式：二维码/定位/手动" />
+        <el-form-item label="签到方式" prop="checkInMethod">
+          <el-select v-model="form.checkInMethod" placeholder="请选择签到方式" clearable filterable style="width: 100%">
+            <el-option v-for="item in checkInMethodOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="操作人ID(手动签到时)" prop="operatorId">
-          <el-input v-model="form.operatorId" placeholder="请输入操作人ID(手动签到时)" />
+        <el-form-item prop="operatorId">
+          <template #label>
+            操作人
+            <LabelHint content="手动签到时" />
+          </template>
+          <UserSelect v-model="form.operatorId" placeholder="请选择操作人" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -161,6 +184,8 @@
 
 <script setup name="Eventcheckin">
 import { listEventcheckin, getEventcheckin, delEventcheckin, addEventcheckin, updateEventcheckin } from "@/api/bt10/eventcheckin";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
+import LabelHint from "@/components/LabelHint";
 
 const { proxy } = getCurrentInstance();
 
@@ -173,6 +198,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const checkInMethodOptions = ref([]);
+const statusOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -192,6 +219,19 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+function getOptionLabel(options, value) {
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  checkInMethodOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.CHECK_IN_METHOD);
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    checkInMethodOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.CHECK_IN_METHOD);
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  });
+}
 
 /** 查询单次签到记录列表 */
 function getList() {
@@ -261,9 +301,10 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getEventcheckin(_id).then(response => {
     form.value = response.data;
+    form.value.operatorId = form.value.operatorId == null ? null : String(form.value.operatorId);
     open.value = true;
     title.value = "修改单次签到记录";
   });
@@ -273,6 +314,7 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["eventcheckinRef"].validate(valid => {
     if (valid) {
+      form.value.operatorId = form.value.operatorId == null || form.value.operatorId === '' ? null : String(form.value.operatorId);
       if (form.value.id != null) {
         updateEventcheckin(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -292,7 +334,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除单次签到记录编号为"' + _ids + '"的数据项？').then(function() {
     return delEventcheckin(_ids);
   }).then(() => {
@@ -310,5 +352,7 @@ function handleExport() {
   }, `eventcheckin_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

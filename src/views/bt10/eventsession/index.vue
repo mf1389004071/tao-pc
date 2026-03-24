@@ -2,13 +2,28 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="所属活动ID" prop="eventId">
-          <el-input
+        <el-form-item label="所属活动" prop="eventId">
+          <el-select
             v-model="queryParams.eventId"
-            placeholder="请输入所属活动ID"
+            placeholder="请选择活动"
             clearable
-            @keyup.enter="handleQuery"
-          />
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodEvent"
+            :loading="loadingEventOptions"
+            style="width: 260px"
+            @visible-change="handleEventSelectVisibleChange"
+          >
+            <el-option v-for="item in eventOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <template #footer>
+              <div style="display:flex;justify-content:center;padding:6px 0;">
+                <el-button link :disabled="loadingEventOptions || eventOptionFinished" @click="loadMoreEventOptions">
+                  {{ eventOptionFinished ? '已加载全部' : '加载更多' }}
+                </el-button>
+              </div>
+            </template>
+          </el-select>
         </el-form-item>
         <el-form-item label="场次日期" prop="sessionDate">
           <el-date-picker clearable
@@ -41,6 +56,11 @@
             clearable
             @keyup.enter="handleQuery"
           />
+        </el-form-item>
+        <el-form-item label="业务状态" prop="bizStatus">
+          <el-select v-model="queryParams.bizStatus" placeholder="请选择业务状态" clearable filterable style="width: 160px">
+            <el-option v-for="item in bizStatusOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -94,7 +114,7 @@
       <el-table v-loading="loading" :data="eventsessionList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="所属活动ID" align="center" prop="eventId" />
+      <el-table-column label="所属活动" align="center" prop="eventId" />
         <el-table-column label="场次日期" align="center" prop="sessionDate" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.sessionDate, '{y}-{m}-{d}') }}</span>
@@ -110,11 +130,19 @@
             <span>{{ parseTime(scope.row.endTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="状态：已排期/进行中/已结束/已取消" align="center" prop="bizStatus" />
+      <el-table-column label="业务状态" align="center" prop="bizStatus">
+        <template #default="scope">
+          {{ getOptionLabel(bizStatusOptions, scope.row.bizStatus) }}
+        </template>
+      </el-table-column>
       <el-table-column label="本场签到人数" align="center" prop="checkInCount" />
       <el-table-column label="AI生成场次总结" align="center" prop="summaryText" />
       <el-table-column label="本场会议链接" align="center" prop="meetingUrl" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+        <template #default="scope">
+          {{ getOptionLabel(statusOptions, scope.row.status) }}
+        </template>
+      </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:eventsession:edit']">修改</el-button>
@@ -135,8 +163,28 @@
     <!-- 添加或修改周期活动的单场次对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="eventsessionRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="所属活动ID" prop="eventId">
-          <el-input v-model="form.eventId" placeholder="请输入所属活动ID" />
+        <el-form-item label="所属活动" prop="eventId">
+          <el-select
+            v-model="form.eventId"
+            placeholder="请选择活动"
+            clearable
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodEvent"
+            :loading="loadingEventOptions"
+            style="width: 100%"
+            @visible-change="handleEventSelectVisibleChange"
+          >
+            <el-option v-for="item in eventOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <template #footer>
+              <div style="display:flex;justify-content:center;padding:6px 0;">
+                <el-button link :disabled="loadingEventOptions || eventOptionFinished" @click="loadMoreEventOptions">
+                  {{ eventOptionFinished ? '已加载全部' : '加载更多' }}
+                </el-button>
+              </div>
+            </template>
+          </el-select>
         </el-form-item>
         <el-form-item label="场次日期" prop="sessionDate">
           <el-date-picker clearable
@@ -165,6 +213,11 @@
         <el-form-item label="本场签到人数" prop="checkInCount">
           <el-input v-model="form.checkInCount" placeholder="请输入本场签到人数" />
         </el-form-item>
+        <el-form-item label="业务状态" prop="bizStatus">
+          <el-select v-model="form.bizStatus" placeholder="请选择业务状态" clearable filterable style="width: 100%">
+            <el-option v-for="item in bizStatusOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="AI生成场次总结" prop="summaryText">
           <el-input v-model="form.summaryText" type="textarea" placeholder="请输入内容" />
         </el-form-item>
@@ -187,6 +240,8 @@
 
 <script setup name="Eventsession">
 import { listEventsession, getEventsession, delEventsession, addEventsession, updateEventsession } from "@/api/bt10/eventsession";
+import { listEventinfo } from "@/api/bt10/eventinfo";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS, BT10_STATUS_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -199,6 +254,13 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const eventOptions = ref([]);
+const loadingEventOptions = ref(false);
+const eventOptionPage = ref(1);
+const eventOptionFinished = ref(false);
+const eventKeyword = ref("");
+const bizStatusOptions = ref([]);
+const statusOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -220,6 +282,80 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+function getOptionLabel(options, value) {
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  bizStatusOptions.value = getBt10OptionsFromCache(BT10_STATUS_KEYS.EVENT, true);
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    bizStatusOptions.value = getBt10OptionsFromCache(BT10_STATUS_KEYS.EVENT, true);
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  });
+}
+
+function toEventOption(item) {
+  const id = item?.id == null ? "" : String(item.id);
+  return {
+    value: id,
+    label: item?.title || "活动"
+  };
+}
+
+function ensureEventOption(value, label) {
+  const v = value == null ? null : String(value);
+  if (!v) return;
+  if (!eventOptions.value.some(item => item.value === v)) {
+    eventOptions.value = [{ value: v, label: label || "未知活动" }, ...eventOptions.value];
+  }
+}
+
+function fetchEventOptions(reset = false) {
+  if (loadingEventOptions.value) return Promise.resolve();
+  loadingEventOptions.value = true;
+  const params = {
+    pageNum: eventOptionPage.value,
+    pageSize: 20
+  };
+  if (eventKeyword.value) {
+    params.title = eventKeyword.value;
+  }
+  return listEventinfo(params).then(res => {
+    const rows = res.rows || [];
+    const mapped = rows.map(toEventOption);
+    if (reset) {
+      eventOptions.value = mapped;
+    } else {
+      const seen = new Set(eventOptions.value.map(item => item.value));
+      eventOptions.value = eventOptions.value.concat(mapped.filter(item => !seen.has(item.value)));
+    }
+    eventOptionFinished.value = rows.length < params.pageSize;
+  }).finally(() => {
+    loadingEventOptions.value = false;
+  });
+}
+
+function remoteMethodEvent(query) {
+  eventKeyword.value = String(query || "").trim();
+  eventOptionPage.value = 1;
+  eventOptionFinished.value = false;
+  fetchEventOptions(true);
+}
+
+function loadMoreEventOptions() {
+  if (loadingEventOptions.value || eventOptionFinished.value) return;
+  eventOptionPage.value += 1;
+  fetchEventOptions(false);
+}
+
+function handleEventSelectVisibleChange(visible) {
+  if (!visible) return;
+  if (!eventOptions.value.length) {
+    remoteMethodEvent("");
+  }
+}
 
 /** 查询周期活动的单场次列表 */
 function getList() {
@@ -284,6 +420,7 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  remoteMethodEvent("");
   open.value = true;
   title.value = "添加周期活动的单场次";
 }
@@ -291,9 +428,11 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getEventsession(_id).then(response => {
     form.value = response.data;
+    form.value.eventId = form.value.eventId == null ? null : String(form.value.eventId);
+    ensureEventOption(form.value.eventId);
     open.value = true;
     title.value = "修改周期活动的单场次";
   });
@@ -303,14 +442,16 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["eventsessionRef"].validate(valid => {
     if (valid) {
+      const payload = { ...form.value };
+      payload.eventId = payload.eventId == null || payload.eventId === "" ? null : String(payload.eventId);
       if (form.value.id != null) {
-        updateEventsession(form.value).then(response => {
+        updateEventsession(payload).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addEventsession(form.value).then(response => {
+        addEventsession(payload).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -322,7 +463,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除周期活动的单场次编号为"' + _ids + '"的数据项？').then(function() {
     return delEventsession(_ids);
   }).then(() => {
@@ -340,5 +481,8 @@ function handleExport() {
   }, `eventsession_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+remoteMethodEvent("");
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

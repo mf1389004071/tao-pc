@@ -81,12 +81,21 @@
       <el-table-column label="关联活动ID" align="center" prop="eventId" />
       <el-table-column label="关联场次ID" align="center" prop="sessionId" />
       <el-table-column label="原始音视频文件ID" align="center" prop="fileId" />
-      <el-table-column label="转写JSON(时间戳与说话人)" align="center" prop="transcriptJson" />
+      <el-table-column label="转写JSON" align="center" prop="transcriptJson">
+        <template #header>
+          转写JSON
+          <LabelHint content="时间戳与说话人" />
+        </template>
+      </el-table-column>
       <el-table-column label="完整文本" align="center" prop="fullText" />
       <el-table-column label="AI摘要" align="center" prop="summary" />
       <el-table-column label="关键点" align="center" prop="keyPoints" />
       <el-table-column label="行动清单" align="center" prop="actionItems" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:aimeetingtranscripts:edit']">修改</el-button>
@@ -138,6 +147,8 @@
 
 <script setup name="Aimeetingtranscripts">
 import { listAimeetingtranscripts, getAimeetingtranscripts, delAimeetingtranscripts, addAimeetingtranscripts, updateAimeetingtranscripts } from "@/api/bt10/aimeetingtranscripts";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
+import LabelHint from "@/components/LabelHint";
 
 const { proxy } = getCurrentInstance();
 
@@ -150,6 +161,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -179,6 +192,18 @@ function getList() {
     aimeetingtranscriptsList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
   });
 }
 
@@ -242,7 +267,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getAimeetingtranscripts(_id).then(response => {
     form.value = response.data;
     open.value = true;
@@ -273,7 +298,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除活动关键信息变更记录编号为"' + _ids + '"的数据项？').then(function() {
     return delAimeetingtranscripts(_ids);
   }).then(() => {
@@ -291,5 +316,7 @@ function handleExport() {
   }, `aimeetingtranscripts_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

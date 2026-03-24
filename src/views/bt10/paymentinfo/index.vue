@@ -10,10 +10,10 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="下单用户ID" prop="userId">
-          <el-input
+        <el-form-item label="下单用户" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入下单用户ID"
+            placeholder="请选择下单用户"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -26,45 +26,37 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
+        <el-form-item label="订单类型" prop="orderType">
+          <el-select v-model="queryParams.orderType" placeholder="请选择订单类型" clearable filterable style="width: 160px">
+            <el-option v-for="item in orderTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关联业务类型" prop="relatedType">
+          <el-select v-model="queryParams.relatedType" placeholder="请选择关联业务类型" clearable filterable style="width: 180px">
+            <el-option v-for="item in relatedTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="订单总金额" prop="totalAmount">
-          <el-input
-            v-model="queryParams.totalAmount"
-            placeholder="请输入订单总金额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.totalAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="贡献点支付额" prop="contribAmount">
-          <el-input
-            v-model="queryParams.contribAmount"
-            placeholder="请输入贡献点支付额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.contribAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="积分支付额" prop="pointsAmount">
-          <el-input
-            v-model="queryParams.pointsAmount"
-            placeholder="请输入积分支付额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.pointsAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="现金支付额" prop="cashAmount">
-          <el-input
-            v-model="queryParams.cashAmount"
-            placeholder="请输入现金支付额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.cashAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 180px" />
         </el-form-item>
-        <el-form-item label="支付方式：微信/支付宝/贡献点/积分等" prop="paymentMethod">
-          <el-input
-            v-model="queryParams.paymentMethod"
-            placeholder="请输入支付方式：微信/支付宝/贡献点/积分等"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="支付方式" prop="paymentMethod">
+          <el-select v-model="queryParams.paymentMethod" placeholder="请选择支付方式" clearable filterable style="width: 180px">
+            <el-option v-for="item in paymentMethodOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="支付状态" prop="paymentStatus">
+          <el-select v-model="queryParams.paymentStatus" placeholder="请选择支付状态" clearable filterable style="width: 180px">
+            <el-option v-for="item in paymentStatusOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="第三方支付单号" prop="paymentNo">
           <el-input
@@ -83,12 +75,7 @@
           </el-date-picker>
         </el-form-item>
         <el-form-item label="退款金额" prop="refundAmount">
-          <el-input
-            v-model="queryParams.refundAmount"
-            placeholder="请输入退款金额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.refundAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="退款时间" prop="refundedTime">
           <el-date-picker clearable
@@ -151,16 +138,32 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="业务订单号" align="center" prop="orderNo" />
-      <el-table-column label="下单用户ID" align="center" prop="userId" />
-      <el-table-column label="订单类型：活动/商品/充值等" align="center" prop="orderType" />
-      <el-table-column label="关联业务类型" align="center" prop="relatedType" />
+      <el-table-column label="下单用户" align="center" prop="userId" />
+      <el-table-column label="订单类型" align="center" prop="orderType">
+        <template #default="scope">
+          {{ getOptionLabel(orderTypeOptions, scope.row.orderType) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="关联业务类型" align="center" prop="relatedType">
+        <template #default="scope">
+          {{ getOptionLabel(relatedTypeOptions, scope.row.relatedType) }}
+        </template>
+      </el-table-column>
       <el-table-column label="关联业务ID" align="center" prop="relatedId" />
       <el-table-column label="订单总金额" align="center" prop="totalAmount" />
       <el-table-column label="贡献点支付额" align="center" prop="contribAmount" />
       <el-table-column label="积分支付额" align="center" prop="pointsAmount" />
       <el-table-column label="现金支付额" align="center" prop="cashAmount" />
-      <el-table-column label="支付状态：待付/已付/已退/失败/已取消" align="center" prop="paymentStatus" />
-      <el-table-column label="支付方式：微信/支付宝/贡献点/积分等" align="center" prop="paymentMethod" />
+      <el-table-column label="支付状态" align="center" prop="paymentStatus">
+        <template #default="scope">
+          {{ getOptionLabel(paymentStatusOptions, scope.row.paymentStatus) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="支付方式" align="center" prop="paymentMethod">
+        <template #default="scope">
+          {{ getOptionLabel(paymentMethodOptions, scope.row.paymentMethod) }}
+        </template>
+      </el-table-column>
       <el-table-column label="第三方支付单号" align="center" prop="paymentNo" />
         <el-table-column label="支付成功时间" align="center" prop="paidTime" width="180">
           <template #default="scope">
@@ -174,7 +177,11 @@
             <span>{{ parseTime(scope.row.refundedTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+        <template #default="scope">
+          {{ getOptionLabel(statusOptions, scope.row.status) }}
+        </template>
+      </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:paymentinfo:edit']">修改</el-button>
@@ -193,82 +200,27 @@
     </el-card>
 
     <!-- 添加或修改统一支付订单明细表对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="980px" append-to-body>
       <el-form ref="paymentinfoRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="业务订单号" prop="orderNo">
-          <el-input v-model="form.orderNo" placeholder="请输入业务订单号" />
-        </el-form-item>
-        <el-form-item label="下单用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入下单用户ID" />
-        </el-form-item>
-        <el-form-item label="订单类型：活动/商品/充值等" prop="orderType">
-          <el-select v-model="form.orderType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择订单类型：活动/商品/充值等"
-            :remote-method="remoteMethodOrderType"
-            :loading="loadingOrderType"
-          >
-            <el-option v-for="item in optionsOrderType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="关联业务类型" prop="relatedType">
-          <el-select v-model="form.relatedType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择关联业务类型"
-            :remote-method="remoteMethodRelatedType"
-            :loading="loadingRelatedType"
-          >
-            <el-option v-for="item in optionsRelatedType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="关联业务ID" prop="relatedId">
-          <el-input v-model="form.relatedId" placeholder="请输入关联业务ID" />
-        </el-form-item>
-        <el-form-item label="订单总金额" prop="totalAmount">
-          <el-input v-model="form.totalAmount" placeholder="请输入订单总金额" />
-        </el-form-item>
-        <el-form-item label="贡献点支付额" prop="contribAmount">
-          <el-input v-model="form.contribAmount" placeholder="请输入贡献点支付额" />
-        </el-form-item>
-        <el-form-item label="积分支付额" prop="pointsAmount">
-          <el-input v-model="form.pointsAmount" placeholder="请输入积分支付额" />
-        </el-form-item>
-        <el-form-item label="现金支付额" prop="cashAmount">
-          <el-input v-model="form.cashAmount" placeholder="请输入现金支付额" />
-        </el-form-item>
-        <el-form-item label="支付方式：微信/支付宝/贡献点/积分等" prop="paymentMethod">
-          <el-input v-model="form.paymentMethod" placeholder="请输入支付方式：微信/支付宝/贡献点/积分等" />
-        </el-form-item>
-        <el-form-item label="第三方支付单号" prop="paymentNo">
-          <el-input v-model="form.paymentNo" placeholder="请输入第三方支付单号" />
-        </el-form-item>
-        <el-form-item label="支付成功时间" prop="paidTime">
-          <el-date-picker clearable
-            v-model="form.paidTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择支付成功时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="退款金额" prop="refundAmount">
-          <el-input v-model="form.refundAmount" placeholder="请输入退款金额" />
-        </el-form-item>
-        <el-form-item label="退款原因" prop="refundReason">
-          <el-input v-model="form.refundReason" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="退款时间" prop="refundedTime">
-          <el-date-picker clearable
-            v-model="form.refundedTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择退款时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="8"><el-form-item label="业务订单号" prop="orderNo"><el-input v-model="form.orderNo" placeholder="请输入业务订单号" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="下单用户" prop="userId"><UserSelect v-model="form.userId" placeholder="请选择下单用户" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="订单类型" prop="orderType"><el-select v-model="form.orderType" placeholder="请选择订单类型" clearable filterable style="width: 100%"><el-option v-for="item in orderTypeOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="关联业务类型" prop="relatedType"><el-select v-model="form.relatedType" placeholder="请选择关联业务类型" clearable filterable style="width: 100%"><el-option v-for="item in relatedTypeOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="关联业务ID" prop="relatedId"><el-input v-model="form.relatedId" placeholder="请输入关联业务ID" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="订单总金额" prop="totalAmount"><el-input-number v-model="form.totalAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="贡献点支付额" prop="contribAmount"><el-input-number v-model="form.contribAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="积分支付额" prop="pointsAmount"><el-input-number v-model="form.pointsAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="现金支付额" prop="cashAmount"><el-input-number v-model="form.cashAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="支付方式" prop="paymentMethod"><el-select v-model="form.paymentMethod" placeholder="请选择支付方式" clearable filterable style="width: 100%"><el-option v-for="item in paymentMethodOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="支付状态" prop="paymentStatus"><el-select v-model="form.paymentStatus" placeholder="请选择支付状态" clearable filterable style="width: 100%"><el-option v-for="item in paymentStatusOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="第三方支付单号" prop="paymentNo"><el-input v-model="form.paymentNo" placeholder="请输入第三方支付单号" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="支付成功时间" prop="paidTime"><el-date-picker clearable v-model="form.paidTime" type="date" value-format="YYYY-MM-DD" placeholder="请选择支付成功时间" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="退款金额" prop="refundAmount"><el-input-number v-model="form.refundAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="退款原因" prop="refundReason"><el-input v-model="form.refundReason" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="退款时间" prop="refundedTime"><el-date-picker clearable v-model="form.refundedTime" type="date" value-format="YYYY-MM-DD" placeholder="请选择退款时间" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="备注" prop="remark"><el-input v-model="form.remark" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -282,6 +234,7 @@
 
 <script setup name="Paymentinfo">
 import { listPaymentinfo, getPaymentinfo, delPaymentinfo, addPaymentinfo, updatePaymentinfo } from "@/api/bt10/paymentinfo";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS, BT10_STATUS_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -294,6 +247,11 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const paymentStatusOptions = ref([]);
+const paymentMethodOptions = ref([]);
+const statusOptions = ref([]);
+const orderTypeOptions = ref([]);
+const relatedTypeOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -323,6 +281,25 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+function getOptionLabel(options, value) {
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  paymentStatusOptions.value = getBt10OptionsFromCache(BT10_STATUS_KEYS.PAYMENT, true);
+  paymentMethodOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.PAYMENT_METHOD);
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  orderTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ORDER_TYPE);
+  relatedTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.RELATED_TYPE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    paymentStatusOptions.value = getBt10OptionsFromCache(BT10_STATUS_KEYS.PAYMENT, true);
+    paymentMethodOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.PAYMENT_METHOD);
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    orderTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ORDER_TYPE);
+    relatedTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.RELATED_TYPE);
+  });
+}
 
 /** 查询统一支付订单明细表列表 */
 function getList() {
@@ -406,7 +383,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getPaymentinfo(_id).then(response => {
     form.value = response.data;
     open.value = true;
@@ -437,7 +414,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除统一支付订单明细表编号为"' + _ids + '"的数据项？').then(function() {
     return delPaymentinfo(_ids);
   }).then(() => {
@@ -455,5 +432,7 @@ function handleExport() {
   }, `paymentinfo_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

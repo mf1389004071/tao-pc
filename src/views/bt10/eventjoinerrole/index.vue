@@ -2,21 +2,37 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="报名记录ID" prop="joinId">
-          <el-input
+        <el-form-item label="报名记录" prop="joinId">
+          <el-select
             v-model="queryParams.joinId"
-            placeholder="请输入报名记录ID"
+            placeholder="请选择报名记录"
             clearable
-            @keyup.enter="handleQuery"
-          />
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodJoin"
+            :loading="loadingJoinOptions"
+            style="width: 260px"
+            @visible-change="handleJoinSelectVisibleChange"
+          >
+            <el-option v-for="item in joinOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="活动角色ID" prop="roleId">
-          <el-input
+        <el-form-item label="活动角色" prop="roleId">
+          <el-select
             v-model="queryParams.roleId"
-            placeholder="请输入活动角色ID"
+            placeholder="请选择活动角色"
             clearable
-            @keyup.enter="handleQuery"
-          />
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodRole"
+            :loading="loadingRoleOptions"
+            style="width: 260px"
+            @visible-change="handleRoleSelectVisibleChange"
+          >
+            <el-option v-for="item in roleOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="分配时间" prop="assignedTime">
           <el-date-picker clearable
@@ -86,8 +102,12 @@
       <el-table v-loading="loading" :data="eventjoinerroleList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="报名记录ID" align="center" prop="joinId" />
-      <el-table-column label="活动角色ID" align="center" prop="roleId" />
+      <el-table-column label="报名记录" align="center" min-width="240">
+        <template #default="scope">{{ getJoinLabel(scope.row.joinId) }}</template>
+      </el-table-column>
+      <el-table-column label="活动角色" align="center" min-width="220">
+        <template #default="scope">{{ getRoleLabel(scope.row.roleId) }}</template>
+      </el-table-column>
         <el-table-column label="分配时间" align="center" prop="assignedTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.assignedTime, '{y}-{m}-{d}') }}</span>
@@ -98,8 +118,12 @@
             <span>{{ parseTime(scope.row.confirmedTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="状态：已分配/已确认/已拒绝" align="center" prop="bizStatus" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="业务状态" align="center" prop="bizStatus" />
+      <el-table-column label="状态" align="center" prop="status">
+        <template #default="scope">
+          {{ getOptionLabel(statusOptions, scope.row.status) }}
+        </template>
+      </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:eventjoinerrole:edit']">修改</el-button>
@@ -120,11 +144,37 @@
     <!-- 添加或修改报名记录与活动角色的分配关系对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="eventjoinerroleRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="报名记录ID" prop="joinId">
-          <el-input v-model="form.joinId" placeholder="请输入报名记录ID" />
+        <el-form-item label="报名记录" prop="joinId">
+          <el-select
+            v-model="form.joinId"
+            placeholder="请选择报名记录"
+            clearable
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodJoin"
+            :loading="loadingJoinOptions"
+            style="width: 100%"
+            @visible-change="handleJoinSelectVisibleChange"
+          >
+            <el-option v-for="item in joinOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="活动角色ID" prop="roleId">
-          <el-input v-model="form.roleId" placeholder="请输入活动角色ID" />
+        <el-form-item label="活动角色" prop="roleId">
+          <el-select
+            v-model="form.roleId"
+            placeholder="请选择活动角色"
+            clearable
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodRole"
+            :loading="loadingRoleOptions"
+            style="width: 100%"
+            @visible-change="handleRoleSelectVisibleChange"
+          >
+            <el-option v-for="item in roleOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="分配时间" prop="assignedTime">
           <el-date-picker clearable
@@ -158,6 +208,9 @@
 
 <script setup name="Eventjoinerrole">
 import { listEventjoinerrole, getEventjoinerrole, delEventjoinerrole, addEventjoinerrole, updateEventjoinerrole } from "@/api/bt10/eventjoinerrole";
+import { listEventjoin } from "@/api/bt10/eventjoin";
+import { listEventrole } from "@/api/bt10/eventrole";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -170,6 +223,11 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const statusOptions = ref([]);
+const joinOptions = ref([]);
+const loadingJoinOptions = ref(false);
+const roleOptions = ref([]);
+const loadingRoleOptions = ref(false);
 
 const data = reactive({
   form: {},
@@ -188,6 +246,76 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+function toJoinOption(item) {
+  const id = item?.id == null ? "" : String(item.id);
+  const label = item?.userNickName || item?.userName || item?.userId ? `报名用户:${item?.userNickName || item?.userName || item?.userId}` : "报名记录";
+  return { value: id, label };
+}
+function toRoleOption(item) {
+  const id = item?.id == null ? "" : String(item.id);
+  return { value: id, label: item?.roleName || "活动角色" };
+}
+function ensureJoinOption(value, label) {
+  const v = value == null ? null : String(value);
+  if (!v) return;
+  if (!joinOptions.value.some(item => item.value === v)) {
+    joinOptions.value = [{ value: v, label: label || "未知报名记录" }, ...joinOptions.value];
+  }
+}
+function ensureRoleOption(value, label) {
+  const v = value == null ? null : String(value);
+  if (!v) return;
+  if (!roleOptions.value.some(item => item.value === v)) {
+    roleOptions.value = [{ value: v, label: label || "未知活动角色" }, ...roleOptions.value];
+  }
+}
+function getJoinLabel(value) {
+  const v = value == null ? "" : String(value);
+  if (!v) return "—";
+  return joinOptions.value.find(item => item.value === v)?.label || "未知报名记录";
+}
+function getRoleLabel(value) {
+  const v = value == null ? "" : String(value);
+  if (!v) return "—";
+  return roleOptions.value.find(item => item.value === v)?.label || "未知活动角色";
+}
+function remoteMethodJoin(query) {
+  if (loadingJoinOptions.value) return;
+  loadingJoinOptions.value = true;
+  const params = { pageNum: 1, pageSize: 50 };
+  const keyword = String(query || "").trim();
+  if (keyword) params.paymentNo = keyword;
+  listEventjoin(params).then(res => {
+    joinOptions.value = (res.rows || []).map(toJoinOption);
+  }).finally(() => { loadingJoinOptions.value = false; });
+}
+function remoteMethodRole(query) {
+  if (loadingRoleOptions.value) return;
+  loadingRoleOptions.value = true;
+  const params = { pageNum: 1, pageSize: 50 };
+  const keyword = String(query || "").trim();
+  if (keyword) params.roleName = keyword;
+  listEventrole(params).then(res => {
+    roleOptions.value = (res.rows || []).map(toRoleOption);
+  }).finally(() => { loadingRoleOptions.value = false; });
+}
+function handleJoinSelectVisibleChange(visible) {
+  if (visible && !joinOptions.value.length) remoteMethodJoin("");
+}
+function handleRoleSelectVisibleChange(visible) {
+  if (visible && !roleOptions.value.length) remoteMethodRole("");
+}
+
+function getOptionLabel(options, value) {
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  });
+}
 
 /** 查询报名记录与活动角色的分配关系列表 */
 function getList() {
@@ -249,6 +377,8 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  remoteMethodJoin("");
+  remoteMethodRole("");
   open.value = true;
   title.value = "添加报名记录与活动角色的分配关系";
 }
@@ -256,9 +386,13 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getEventjoinerrole(_id).then(response => {
     form.value = response.data;
+    form.value.joinId = form.value.joinId == null ? null : String(form.value.joinId);
+    form.value.roleId = form.value.roleId == null ? null : String(form.value.roleId);
+    ensureJoinOption(form.value.joinId);
+    ensureRoleOption(form.value.roleId);
     open.value = true;
     title.value = "修改报名记录与活动角色的分配关系";
   });
@@ -268,14 +402,17 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["eventjoinerroleRef"].validate(valid => {
     if (valid) {
+      const payload = { ...form.value };
+      payload.joinId = payload.joinId == null || payload.joinId === "" ? null : String(payload.joinId);
+      payload.roleId = payload.roleId == null || payload.roleId === "" ? null : String(payload.roleId);
       if (form.value.id != null) {
-        updateEventjoinerrole(form.value).then(response => {
+        updateEventjoinerrole(payload).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addEventjoinerrole(form.value).then(response => {
+        addEventjoinerrole(payload).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -287,7 +424,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除报名记录与活动角色的分配关系编号为"' + _ids + '"的数据项？').then(function() {
     return delEventjoinerrole(_ids);
   }).then(() => {
@@ -305,5 +442,7 @@ function handleExport() {
   }, `eventjoinerrole_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+Promise.all([loadBt10Enums(), remoteMethodJoin(""), remoteMethodRole("")]).finally(() => {
+  getList();
+});
 </script>

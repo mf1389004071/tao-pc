@@ -2,21 +2,21 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="身份数值等级(如 0/10/20/30/50/60)" prop="identityLevel">
-          <el-input
-            v-model="queryParams.identityLevel"
-            placeholder="请输入身份数值等级(如 0/10/20/30/50/60)"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item prop="identityLevel">
+          <template #label>
+            身份数值等级
+            <LabelHint content="如 0/10/20/30/50/60" />
+          </template>
+          <el-input-number v-model="queryParams.identityLevel" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
-        <el-form-item label="身份名称，如 创始人/联创/合伙人/高手/粉丝/城市主理人/合作方" prop="name">
-          <el-input
-            v-model="queryParams.name"
-            placeholder="请输入身份名称，如 创始人/联创/合伙人/高手/粉丝/城市主理人/合作方"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item prop="name">
+          <template #label>
+            身份名称
+            <LabelHint content="创始人/联创/合伙人/高手/粉丝/城市主理人/合作方" />
+          </template>
+          <el-select v-model="queryParams.name" placeholder="请选择身份名称" clearable filterable style="width: 220px">
+            <el-option v-for="item in identityNameOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="身份图标URL或名称" prop="icon">
           <el-input
@@ -34,13 +34,12 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="身份付费金额(人民币)" prop="priceAmount">
-          <el-input
-            v-model="queryParams.priceAmount"
-            placeholder="请输入身份付费金额(人民币)"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item prop="priceAmount">
+          <template #label>
+            身份付费金额
+            <LabelHint content="人民币" />
+          </template>
+          <el-input-number v-model="queryParams.priceAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -93,9 +92,27 @@
 
       <el-table v-loading="loading" :data="identitiesList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="身份编码(如 FOUNDER/PARTNER)" align="center" prop="identityCode" />
-      <el-table-column label="身份数值等级(如 0/10/20/30/50/60)" align="center" prop="identityLevel" />
-      <el-table-column label="身份名称，如 创始人/联创/合伙人/高手/粉丝/城市主理人/合作方" align="center" prop="name" />
+        <el-table-column label="身份编码" align="center" prop="identityCode">
+          <template #header>
+            身份编码
+            <LabelHint content="如 FOUNDER/PARTNER" />
+          </template>
+        </el-table-column>
+      <el-table-column label="身份数值等级" align="center" prop="identityLevel">
+        <template #header>
+          身份数值等级
+          <LabelHint content="如 0/10/20/30/50/60" />
+        </template>
+      </el-table-column>
+      <el-table-column label="身份名称" align="center" prop="name">
+        <template #header>
+          身份名称
+          <LabelHint content="创始人/联创/合伙人/高手/粉丝/城市主理人/合作方" />
+        </template>
+        <template #default="scope">
+          {{ getOptionLabel(identityNameOptions, scope.row.name) }}
+        </template>
+      </el-table-column>
       <el-table-column label="身份图标URL或名称" align="center" prop="icon" />
       <el-table-column label="身份主题色" align="center" prop="themeColor" />
       <el-table-column label="身份简介" align="center" prop="intro" />
@@ -104,8 +121,17 @@
       <el-table-column label="责任说明" align="center" prop="dutiesText" />
       <el-table-column label="利益说明" align="center" prop="benefitsText" />
       <el-table-column label="晋升说明" align="center" prop="upgradeRulesText" />
-      <el-table-column label="身份付费金额(人民币)" align="center" prop="priceAmount" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="身份付费金额" align="center" prop="priceAmount">
+        <template #header>
+          身份付费金额
+          <LabelHint content="人民币" />
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:identities:edit']">修改</el-button>
@@ -126,11 +152,21 @@
     <!-- 添加或修改系统身份定义表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="identitiesRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="身份数值等级(如 0/10/20/30/50/60)" prop="identityLevel">
-          <el-input v-model="form.identityLevel" placeholder="请输入身份数值等级(如 0/10/20/30/50/60)" />
+        <el-form-item prop="identityLevel">
+          <template #label>
+            身份数值等级
+            <LabelHint content="如 0/10/20/30/50/60" />
+          </template>
+          <el-input-number v-model="form.identityLevel" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="身份名称，如 创始人/联创/合伙人/高手/粉丝/城市主理人/合作方" prop="name">
-          <el-input v-model="form.name" placeholder="请输入身份名称，如 创始人/联创/合伙人/高手/粉丝/城市主理人/合作方" />
+        <el-form-item prop="name">
+          <template #label>
+            身份名称
+            <LabelHint content="创始人/联创/合伙人/高手/粉丝/城市主理人/合作方" />
+          </template>
+          <el-select v-model="form.name" placeholder="请选择身份名称" clearable filterable style="width: 100%">
+            <el-option v-for="item in identityNameOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="身份图标URL或名称" prop="icon">
           <el-input v-model="form.icon" placeholder="请输入身份图标URL或名称" />
@@ -156,8 +192,12 @@
         <el-form-item label="晋升说明" prop="upgradeRulesText">
           <el-input v-model="form.upgradeRulesText" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="身份付费金额(人民币)" prop="priceAmount">
-          <el-input v-model="form.priceAmount" placeholder="请输入身份付费金额(人民币)" />
+        <el-form-item prop="priceAmount">
+          <template #label>
+            身份付费金额
+            <LabelHint content="人民币" />
+          </template>
+          <el-input-number v-model="form.priceAmount" :min="0" :precision="2" :step="0.1" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -175,6 +215,8 @@
 
 <script setup name="Identities">
 import { listIdentities, getIdentities, delIdentities, addIdentities, updateIdentities } from "@/api/bt10/identities";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
+import LabelHint from "@/components/LabelHint";
 
 const { proxy } = getCurrentInstance();
 
@@ -187,6 +229,9 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
+const identityNameOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -219,6 +264,20 @@ function getList() {
     identitiesList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  identityNameOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.IDENTITY_NAME);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    identityNameOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.IDENTITY_NAME);
   });
 }
 
@@ -334,5 +393,7 @@ function handleExport() {
   }, `identities_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

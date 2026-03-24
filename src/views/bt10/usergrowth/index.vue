@@ -2,10 +2,10 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="用户ID(sys_user.user_id)" prop="userId">
-          <el-input
+        <el-form-item label="用户" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入用户ID(sys_user.user_id)"
+            placeholder="请选择用户(sys_user.user_id)"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -78,12 +78,16 @@
       <el-table v-loading="loading" :data="usergrowthList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="用户ID(sys_user.user_id)" align="center" prop="userId" />
+      <el-table-column label="用户" align="center" prop="userId" />
       <el-table-column label="原阶段" align="center" prop="stageFrom" />
       <el-table-column label="新阶段" align="center" prop="stageTo" />
-      <el-table-column label="触发方式：自动/手动/任务完成等" align="center" prop="triggerType" />
+      <el-table-column label="触发方式" align="center" prop="triggerType" />
       <el-table-column label="触发上下文数据" align="center" prop="triggerData" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:usergrowth:edit']">修改</el-button>
@@ -104,8 +108,8 @@
     <!-- 添加或修改音视频转写与AI摘要对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="usergrowthRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户ID(sys_user.user_id)" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID(sys_user.user_id)" />
+        <el-form-item label="用户" prop="userId">
+          <UserSelect v-model="form.userId" placeholder="请选择用户(sys_user.user_id)" />
         </el-form-item>
         <el-form-item label="原阶段" prop="stageFrom">
           <el-input v-model="form.stageFrom" placeholder="请输入原阶段" />
@@ -113,10 +117,9 @@
         <el-form-item label="新阶段" prop="stageTo">
           <el-input v-model="form.stageTo" placeholder="请输入新阶段" />
         </el-form-item>
-        <el-form-item label="触发方式：自动/手动/任务完成等" prop="triggerType">
-          <el-select v-model="form.triggerType" multiple filterable remote reserve-keyword remote-show-suffix
+        <el-form-item label="触发方式" prop="triggerType">
+     <el-select v-model="form.triggerType" multiple filterable reserve-keyword remote-show-suffix
             placeholder="请选择触发方式：自动/手动/任务完成等"
-            :remote-method="remoteMethodTriggerType"
             :loading="loadingTriggerType"
           >
             <el-option v-for="item in optionsTriggerType" :key="item.value"
@@ -140,6 +143,7 @@
 
 <script setup name="Usergrowth">
 import { listUsergrowth, getUsergrowth, delUsergrowth, addUsergrowth, updateUsergrowth } from "@/api/bt10/usergrowth";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -152,6 +156,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -178,6 +184,18 @@ function getList() {
     usergrowthList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
   });
 }
 
@@ -238,7 +256,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getUsergrowth(_id).then(response => {
     form.value = response.data;
     open.value = true;
@@ -269,7 +287,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除音视频转写与AI摘要编号为"' + _ids + '"的数据项？').then(function() {
     return delUsergrowth(_ids);
   }).then(() => {
@@ -287,5 +305,7 @@ function handleExport() {
   }, `usergrowth_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

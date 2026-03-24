@@ -2,10 +2,10 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="接收用户ID" prop="userId">
-          <el-input
+        <el-form-item label="接收用户" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入接收用户ID"
+            placeholder="请选择接收用户"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -25,6 +25,16 @@
             clearable
             @keyup.enter="handleQuery"
           />
+        </el-form-item>
+        <el-form-item label="通知类型" prop="notificationType">
+          <el-select v-model="queryParams.notificationType" placeholder="请选择通知类型" clearable filterable style="width: 160px">
+            <el-option v-for="item in notificationTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关联业务类型" prop="relatedType">
+          <el-select v-model="queryParams.relatedType" placeholder="请选择关联业务类型" clearable filterable style="width: 180px">
+            <el-option v-for="item in relatedTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="阅读时间" prop="readTime">
           <el-date-picker clearable
@@ -86,11 +96,19 @@
       <el-table v-loading="loading" :data="notificationsList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="接收用户ID" align="center" prop="userId" />
+      <el-table-column label="接收用户" align="center" prop="userId" />
       <el-table-column label="标题" align="center" prop="title" />
       <el-table-column label="正文" align="center" prop="content" />
-      <el-table-column label="类型：系统/互动/订阅等" align="center" prop="notificationType" />
-      <el-table-column label="关联业务类型" align="center" prop="relatedType" />
+      <el-table-column label="通知类型" align="center" prop="notificationType">
+        <template #default="scope">
+          {{ getOptionLabel(notificationTypeOptions, scope.row.notificationType) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="关联业务类型" align="center" prop="relatedType">
+        <template #default="scope">
+          {{ getOptionLabel(relatedTypeOptions, scope.row.relatedType) }}
+        </template>
+      </el-table-column>
       <el-table-column label="关联业务ID" align="center" prop="relatedId" />
       <el-table-column label="是否已读" align="center" prop="isRead" />
         <el-table-column label="阅读时间" align="center" prop="readTime" width="180">
@@ -98,7 +116,11 @@
             <span>{{ parseTime(scope.row.readTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:notifications:edit']">修改</el-button>
@@ -119,8 +141,8 @@
     <!-- 添加或修改用户与岗位关联表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="notificationsRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="接收用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入接收用户ID" />
+        <el-form-item label="接收用户" prop="userId">
+          <UserSelect v-model="form.userId" placeholder="请选择接收用户" />
         </el-form-item>
         <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入标题" />
@@ -128,26 +150,14 @@
         <el-form-item label="正文">
           <editor v-model="form.content" :min-height="192"/>
         </el-form-item>
-        <el-form-item label="类型：系统/互动/订阅等" prop="notificationType">
-          <el-select v-model="form.notificationType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择类型：系统/互动/订阅等"
-            :remote-method="remoteMethodNotificationType"
-            :loading="loadingNotificationType"
-          >
-            <el-option v-for="item in optionsNotificationType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
+        <el-form-item label="通知类型" prop="notificationType">
+          <el-select v-model="form.notificationType" placeholder="请选择通知类型" clearable filterable style="width: 100%">
+            <el-option v-for="item in notificationTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="关联业务类型" prop="relatedType">
-          <el-select v-model="form.relatedType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择关联业务类型"
-            :remote-method="remoteMethodRelatedType"
-            :loading="loadingRelatedType"
-          >
-            <el-option v-for="item in optionsRelatedType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
+          <el-select v-model="form.relatedType" placeholder="请选择关联业务类型" clearable filterable style="width: 100%">
+            <el-option v-for="item in relatedTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="关联业务ID" prop="relatedId">
@@ -177,6 +187,7 @@
 
 <script setup name="Notifications">
 import { listNotifications, getNotifications, delNotifications, addNotifications, updateNotifications } from "@/api/bt10/notifications";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -189,6 +200,10 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
+const notificationTypeOptions = ref([]);
+const relatedTypeOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -218,6 +233,22 @@ function getList() {
     notificationsList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  notificationTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.NOTIFICATION_TYPE);
+  relatedTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.RELATED_TYPE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    notificationTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.NOTIFICATION_TYPE);
+    relatedTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.RELATED_TYPE);
   });
 }
 
@@ -281,7 +312,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getNotifications(_id).then(response => {
     form.value = response.data;
     form.value.isRead = form.value.isRead.split(",");
@@ -314,7 +345,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除用户与岗位关联表编号为"' + _ids + '"的数据项？').then(function() {
     return delNotifications(_ids);
   }).then(() => {
@@ -332,5 +363,7 @@ function handleExport() {
   }, `notifications_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

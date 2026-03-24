@@ -2,10 +2,10 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input
+        <el-form-item label="用户" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入用户ID"
+            placeholder="请选择用户"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -42,53 +42,37 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="本次积分变化(可为空，无变更为NULL)" prop="pointChange">
-          <el-input
-            v-model="queryParams.pointChange"
-            placeholder="请输入本次积分变化(可为空，无变更为NULL)"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="事件类型" prop="eventType">
+          <el-select v-model="queryParams.eventType" placeholder="请选择事件类型" clearable filterable style="width: 160px">
+            <el-option v-for="item in eventTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="事件来源业务类型" prop="eventSourceType">
+          <el-select v-model="queryParams.eventSourceType" placeholder="请选择来源类型" clearable filterable style="width: 180px">
+            <el-option v-for="item in eventSourceTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item prop="pointChange">
+          <template #label>
+            本次积分变化
+            <LabelHint content="可为空，无变更为NULL" />
+          </template>
+          <el-input-number v-model="queryParams.pointChange" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="变更前积分余额" prop="pointBalanceBefore">
-          <el-input
-            v-model="queryParams.pointBalanceBefore"
-            placeholder="请输入变更前积分余额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.pointBalanceBefore" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="变更后积分余额" prop="pointBalanceAfter">
-          <el-input
-            v-model="queryParams.pointBalanceAfter"
-            placeholder="请输入变更后积分余额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.pointBalanceAfter" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="本次贡献点变化" prop="contribChange">
-          <el-input
-            v-model="queryParams.contribChange"
-            placeholder="请输入本次贡献点变化"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.contribChange" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="变更前贡献点余额" prop="contribBalanceBefore">
-          <el-input
-            v-model="queryParams.contribBalanceBefore"
-            placeholder="请输入变更前贡献点余额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.contribBalanceBefore" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="变更后贡献点余额" prop="contribBalanceAfter">
-          <el-input
-            v-model="queryParams.contribBalanceAfter"
-            placeholder="请输入变更后贡献点余额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.contribBalanceAfter" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -142,7 +126,7 @@
       <el-table v-loading="loading" :data="useractivitylogsList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="用户" align="center" prop="userId" />
         <el-table-column label="发生时间" align="center" prop="occurredTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.occurredTime, '{y}-{m}-{d}') }}</span>
@@ -150,18 +134,45 @@
         </el-table-column>
       <el-table-column label="IP 地址" align="center" prop="ipAddress" />
       <el-table-column label="终端设备信息" align="center" prop="device" />
-      <el-table-column label="事件类型：LOGIN/LOGOUT/SIGNIN/LIKE/COMMENT/SHARE/REGISTER_EVENT等" align="center" prop="eventType" />
-      <el-table-column label="事件来源业务类型：EVENT/CONTENT/USER等" align="center" prop="eventSourceType" />
+      <el-table-column label="事件类型" align="center" prop="eventType">
+        <template #default="scope">
+          {{ getOptionLabel(eventTypeOptions, scope.row.eventType) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="事件来源业务类型" align="center" prop="eventSourceType">
+        <template #default="scope">
+          {{ getOptionLabel(eventSourceTypeOptions, scope.row.eventSourceType) }}
+        </template>
+      </el-table-column>
       <el-table-column label="事件来源业务ID" align="center" prop="eventSourceId" />
-      <el-table-column label="事件标签列表(JSON)" align="center" prop="eventTags" />
-      <el-table-column label="本次积分变化(可为空，无变更为NULL)" align="center" prop="pointChange" />
+      <el-table-column label="事件标签列表" align="center" prop="eventTags">
+        <template #header>
+          事件标签列表
+          <LabelHint content="JSON" />
+        </template>
+      </el-table-column>
+      <el-table-column label="本次积分变化" align="center" prop="pointChange">
+        <template #header>
+          本次积分变化
+          <LabelHint content="可为空，无变更为NULL" />
+        </template>
+      </el-table-column>
       <el-table-column label="变更前积分余额" align="center" prop="pointBalanceBefore" />
       <el-table-column label="变更后积分余额" align="center" prop="pointBalanceAfter" />
       <el-table-column label="本次贡献点变化" align="center" prop="contribChange" />
       <el-table-column label="变更前贡献点余额" align="center" prop="contribBalanceBefore" />
       <el-table-column label="变更后贡献点余额" align="center" prop="contribBalanceAfter" />
-      <el-table-column label="额外上下文(如停留时长、入口渠道等)" align="center" prop="extra" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="额外上下文" align="center" prop="extra">
+        <template #header>
+          额外上下文
+          <LabelHint content="如停留时长、入口渠道等" />
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:useractivitylogs:edit']">修改</el-button>
@@ -180,71 +191,32 @@
     </el-card>
 
     <!-- 添加或修改用户信息画像扩展表对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="980px" append-to-body>
       <el-form ref="useractivitylogsRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
-        </el-form-item>
-        <el-form-item label="发生时间" prop="occurredTime">
-          <el-date-picker clearable
-            v-model="form.occurredTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择发生时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="IP 地址" prop="ipAddress">
-          <el-input v-model="form.ipAddress" placeholder="请输入IP 地址" />
-        </el-form-item>
-        <el-form-item label="终端设备信息" prop="device">
-          <el-input v-model="form.device" placeholder="请输入终端设备信息" />
-        </el-form-item>
-        <el-form-item label="事件类型：LOGIN/LOGOUT/SIGNIN/LIKE/COMMENT/SHARE/REGISTER_EVENT等" prop="eventType">
-          <el-select v-model="form.eventType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择事件类型：LOGIN/LOGOUT/SIGNIN/LIKE/COMMENT/SHARE/REGISTER_EVENT等"
-            :remote-method="remoteMethodEventType"
-            :loading="loadingEventType"
-          >
-            <el-option v-for="item in optionsEventType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="事件来源业务类型：EVENT/CONTENT/USER等" prop="eventSourceType">
-          <el-select v-model="form.eventSourceType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择事件来源业务类型：EVENT/CONTENT/USER等"
-            :remote-method="remoteMethodEventSourceType"
-            :loading="loadingEventSourceType"
-          >
-            <el-option v-for="item in optionsEventSourceType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="事件来源业务ID" prop="eventSourceId">
-          <el-input v-model="form.eventSourceId" placeholder="请输入事件来源业务ID" />
-        </el-form-item>
-        <el-form-item label="本次积分变化(可为空，无变更为NULL)" prop="pointChange">
-          <el-input v-model="form.pointChange" placeholder="请输入本次积分变化(可为空，无变更为NULL)" />
-        </el-form-item>
-        <el-form-item label="变更前积分余额" prop="pointBalanceBefore">
-          <el-input v-model="form.pointBalanceBefore" placeholder="请输入变更前积分余额" />
-        </el-form-item>
-        <el-form-item label="变更后积分余额" prop="pointBalanceAfter">
-          <el-input v-model="form.pointBalanceAfter" placeholder="请输入变更后积分余额" />
-        </el-form-item>
-        <el-form-item label="本次贡献点变化" prop="contribChange">
-          <el-input v-model="form.contribChange" placeholder="请输入本次贡献点变化" />
-        </el-form-item>
-        <el-form-item label="变更前贡献点余额" prop="contribBalanceBefore">
-          <el-input v-model="form.contribBalanceBefore" placeholder="请输入变更前贡献点余额" />
-        </el-form-item>
-        <el-form-item label="变更后贡献点余额" prop="contribBalanceAfter">
-          <el-input v-model="form.contribBalanceAfter" placeholder="请输入变更后贡献点余额" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="8"><el-form-item label="用户" prop="userId"><UserSelect v-model="form.userId" placeholder="请选择用户" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="发生时间" prop="occurredTime"><el-date-picker clearable v-model="form.occurredTime" type="date" value-format="YYYY-MM-DD" placeholder="请选择发生时间" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="IP 地址" prop="ipAddress"><el-input v-model="form.ipAddress" placeholder="请输入IP 地址" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="终端设备信息" prop="device"><el-input v-model="form.device" placeholder="请输入终端设备信息" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="事件类型" prop="eventType"><el-select v-model="form.eventType" placeholder="请选择事件类型" clearable filterable style="width: 100%"><el-option v-for="item in eventTypeOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="事件来源业务类型" prop="eventSourceType"><el-select v-model="form.eventSourceType" placeholder="请选择来源类型" clearable filterable style="width: 100%"><el-option v-for="item in eventSourceTypeOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="事件来源业务ID" prop="eventSourceId"><el-input v-model="form.eventSourceId" placeholder="请输入事件来源业务ID" /></el-form-item></el-col>
+          <el-col :span="8">
+            <el-form-item prop="pointChange">
+              <template #label>
+                本次积分变化
+                <LabelHint content="可为空，无变更为NULL" />
+              </template>
+              <el-input-number v-model="form.pointChange" controls-position="right" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8"><el-form-item label="变更前积分余额" prop="pointBalanceBefore"><el-input-number v-model="form.pointBalanceBefore" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="变更后积分余额" prop="pointBalanceAfter"><el-input-number v-model="form.pointBalanceAfter" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="本次贡献点变化" prop="contribChange"><el-input-number v-model="form.contribChange" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="变更前贡献点余额" prop="contribBalanceBefore"><el-input-number v-model="form.contribBalanceBefore" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="变更后贡献点余额" prop="contribBalanceAfter"><el-input-number v-model="form.contribBalanceAfter" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="备注" prop="remark"><el-input v-model="form.remark" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -258,6 +230,8 @@
 
 <script setup name="Useractivitylogs">
 import { listUseractivitylogs, getUseractivitylogs, delUseractivitylogs, addUseractivitylogs, updateUseractivitylogs } from "@/api/bt10/useractivitylogs";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
+import LabelHint from "@/components/LabelHint";
 
 const { proxy } = getCurrentInstance();
 
@@ -270,6 +244,10 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
+const eventTypeOptions = ref([]);
+const eventSourceTypeOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -306,6 +284,22 @@ function getList() {
     useractivitylogsList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  eventTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ACTIVITY_EVENT_TYPE);
+  eventSourceTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ACTIVITY_EVENT_SOURCE_TYPE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    eventTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ACTIVITY_EVENT_TYPE);
+    eventSourceTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ACTIVITY_EVENT_SOURCE_TYPE);
   });
 }
 
@@ -373,7 +367,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getUseractivitylogs(_id).then(response => {
     form.value = response.data;
     open.value = true;
@@ -404,7 +398,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除用户信息画像扩展表编号为"' + _ids + '"的数据项？').then(function() {
     return delUseractivitylogs(_ids);
   }).then(() => {
@@ -422,5 +416,7 @@ function handleExport() {
   }, `useractivitylogs_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

@@ -9,11 +9,36 @@ const BT10_STATUS_CACHE_KEY = "bt10_status_cache_all";
 export const BT10_ENUM_KEYS = {
   EVENT_JOIN_TYPE: "com.geek.tao.bt10.common.Enums$EventJoinType",
   EVENT_TYPE: "com.geek.tao.bt10.common.Enums$EventType",
-  STATUS: "com.geek.tao.bt10.common.Enums$Status"
+  STATUS: "com.geek.tao.bt10.common.Enums$Status",
+  PAYMENT_METHOD: "com.geek.tao.bt10.common.Enums$PaymentMethod",
+  CHECK_IN_METHOD: "com.geek.tao.bt10.common.Enums$CheckInMethod",
+  NOTIFICATION_TYPE: "com.geek.tao.bt10.common.Enums$NotificationType",
+  RELATED_TYPE: "com.geek.tao.bt10.common.Enums$RelatedType",
+  ACTIVITY_EVENT_TYPE: "com.geek.tao.bt10.common.Enums$ActivityEventType",
+  ACTIVITY_EVENT_SOURCE_TYPE: "com.geek.tao.bt10.common.Enums$ActivityEventSourceType",
+  ORDER_TYPE: "com.geek.tao.bt10.common.Enums$OrderType",
+  PAYMENT_ITEM_TYPE: "com.geek.tao.bt10.common.Enums$PaymentItemType",
+  GRANT_METHOD: "com.geek.tao.bt10.common.Enums$GrantMethod",
+  USAGE_STATUS: "com.geek.tao.bt10.common.Enums$UsageStatus",
+  KNOWLEDGE_CONTENT_TYPE: "com.geek.tao.bt10.common.Enums$KnowledgeContentType",
+  TASK_TYPE: "com.geek.tao.bt10.common.Enums$TaskType",
+  ACTION_TYPE: "com.geek.tao.bt10.common.Enums$ActionType",
+  CHANGE_TYPE: "com.geek.tao.bt10.common.Enums$ChangeType",
+  OPERATOR_TYPE: "com.geek.tao.bt10.common.Enums$OperatorType",
+  GROWTH_STAGE: "com.geek.tao.bt10.common.Enums$GrowthStage",
+  BIZ_ROLE: "com.geek.tao.bt10.common.Enums$BizRole",
+  USER_TAG_SOURCE: "com.geek.tao.bt10.common.Enums$UserTagSource",
+  COMMUNITY_MEMBER_ROLE: "com.geek.tao.bt10.common.Enums$CommunityMemberRole",
+  USER_CHANGE_FIELD: "com.geek.tao.bt10.common.Enums$UserChangeField",
+  EVENT_ROLE_NAME: "com.geek.tao.bt10.common.Enums$EventRoleName",
+  IDENTITY_NAME: "com.geek.tao.bt10.common.Enums$IdentityName"
 };
 
 export const BT10_STATUS_KEYS = {
-  EVENT: "com.geek.tao.bt10.common.Status$Event"
+  EVENT: "com.geek.tao.bt10.common.Status$Event",
+  EVENT_JOIN: "com.geek.tao.bt10.common.Status$EventJoin",
+  PAYMENT: "com.geek.tao.bt10.common.Status$Payment",
+  CONVERSION: "com.geek.tao.bt10.common.Status$Conversion"
 };
 
 function mapEnumToOptions(enumMap) {

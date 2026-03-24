@@ -2,61 +2,48 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="活动ID" prop="eventId">
-          <el-input
+        <el-form-item label="活动" prop="eventId">
+          <el-select
             v-model="queryParams.eventId"
-            placeholder="请输入活动ID"
+            placeholder="请选择活动"
             clearable
-            @keyup.enter="handleQuery"
-          />
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodEvent"
+            :loading="loadingEventOptions"
+            style="width: 260px"
+            @visible-change="handleEventSelectVisibleChange"
+          >
+            <el-option v-for="item in eventOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <template #footer>
+              <div style="display:flex;justify-content:center;padding:6px 0;">
+                <el-button link :disabled="loadingEventOptions || eventOptionFinished" @click="loadMoreEventOptions">
+                  {{ eventOptionFinished ? '已加载全部' : '加载更多' }}
+                </el-button>
+              </div>
+            </template>
+          </el-select>
         </el-form-item>
-        <el-form-item label="角色名：天使/主持人/PM/助教/签到/主讲等" prop="roleName">
-          <el-input
-            v-model="queryParams.roleName"
-            placeholder="请输入角色名：天使/主持人/PM/助教/签到/主讲等"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="角色名" prop="roleName">
+          <el-select v-model="queryParams.roleName" placeholder="请选择角色名" clearable filterable style="width: 180px">
+            <el-option v-for="item in roleNameOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="该角色最大人数" prop="maxParticipants">
-          <el-input
-            v-model="queryParams.maxParticipants"
-            placeholder="请输入该角色最大人数"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.maxParticipants" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="当前已分配人数" prop="currentParticipants">
-          <el-input
-            v-model="queryParams.currentParticipants"
-            placeholder="请输入当前已分配人数"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.currentParticipants" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="担任该角色奖励积分" prop="pointsReward">
-          <el-input
-            v-model="queryParams.pointsReward"
-            placeholder="请输入担任该角色奖励积分"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.pointsReward" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="担任该角色奖励贡献点" prop="contribReward">
-          <el-input
-            v-model="queryParams.contribReward"
-            placeholder="请输入担任该角色奖励贡献点"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.contribReward" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum">
-          <el-input
-            v-model="queryParams.orderNum"
-            placeholder="请输入排序"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.orderNum" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -110,8 +97,12 @@
       <el-table v-loading="loading" :data="eventroleList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="活动ID" align="center" prop="eventId" />
-      <el-table-column label="角色名：天使/主持人/PM/助教/签到/主讲等" align="center" prop="roleName" />
+      <el-table-column label="活动" align="center" prop="eventId" />
+      <el-table-column label="角色名" align="center" prop="roleName">
+        <template #default="scope">
+          {{ getOptionLabel(roleNameOptions, scope.row.roleName) }}
+        </template>
+      </el-table-column>
       <el-table-column label="角色说明" align="center" prop="roleDescription" />
       <el-table-column label="该角色最大人数" align="center" prop="maxParticipants" />
       <el-table-column label="当前已分配人数" align="center" prop="currentParticipants" />
@@ -121,7 +112,11 @@
       <el-table-column label="职责说明" align="center" prop="responsibilities" />
       <el-table-column label="任职要求" align="center" prop="requirements" />
       <el-table-column label="排序" align="center" prop="orderNum" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+        <template #default="scope">
+          {{ getOptionLabel(statusOptions, scope.row.status) }}
+        </template>
+      </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:eventrole:edit']">修改</el-button>
@@ -142,26 +137,48 @@
     <!-- 添加或修改活动与标签多对多关联对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="eventroleRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="活动ID" prop="eventId">
-          <el-input v-model="form.eventId" placeholder="请输入活动ID" />
+        <el-form-item label="活动" prop="eventId">
+          <el-select
+            v-model="form.eventId"
+            placeholder="请选择活动"
+            clearable
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodEvent"
+            :loading="loadingEventOptions"
+            style="width: 100%"
+            @visible-change="handleEventSelectVisibleChange"
+          >
+            <el-option v-for="item in eventOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <template #footer>
+              <div style="display:flex;justify-content:center;padding:6px 0;">
+                <el-button link :disabled="loadingEventOptions || eventOptionFinished" @click="loadMoreEventOptions">
+                  {{ eventOptionFinished ? '已加载全部' : '加载更多' }}
+                </el-button>
+              </div>
+            </template>
+          </el-select>
         </el-form-item>
-        <el-form-item label="角色名：天使/主持人/PM/助教/签到/主讲等" prop="roleName">
-          <el-input v-model="form.roleName" placeholder="请输入角色名：天使/主持人/PM/助教/签到/主讲等" />
+        <el-form-item label="角色名" prop="roleName">
+          <el-select v-model="form.roleName" placeholder="请选择角色名" clearable filterable style="width: 100%">
+            <el-option v-for="item in roleNameOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="角色说明" prop="roleDescription">
           <el-input v-model="form.roleDescription" type="textarea" placeholder="请输入内容" />
         </el-form-item>
         <el-form-item label="该角色最大人数" prop="maxParticipants">
-          <el-input v-model="form.maxParticipants" placeholder="请输入该角色最大人数" />
+          <el-input-number v-model="form.maxParticipants" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="当前已分配人数" prop="currentParticipants">
-          <el-input v-model="form.currentParticipants" placeholder="请输入当前已分配人数" />
+          <el-input-number v-model="form.currentParticipants" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="担任该角色奖励积分" prop="pointsReward">
-          <el-input v-model="form.pointsReward" placeholder="请输入担任该角色奖励积分" />
+          <el-input-number v-model="form.pointsReward" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="担任该角色奖励贡献点" prop="contribReward">
-          <el-input v-model="form.contribReward" placeholder="请输入担任该角色奖励贡献点" />
+          <el-input-number v-model="form.contribReward" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="职责说明" prop="responsibilities">
           <el-input v-model="form.responsibilities" type="textarea" placeholder="请输入内容" />
@@ -170,7 +187,7 @@
           <el-input v-model="form.requirements" type="textarea" placeholder="请输入内容" />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum">
-          <el-input v-model="form.orderNum" placeholder="请输入排序" />
+          <el-input-number v-model="form.orderNum" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -188,6 +205,8 @@
 
 <script setup name="Eventrole">
 import { listEventrole, getEventrole, delEventrole, addEventrole, updateEventrole } from "@/api/bt10/eventrole";
+import { listEventinfo } from "@/api/bt10/eventinfo";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -200,6 +219,13 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const eventOptions = ref([]);
+const loadingEventOptions = ref(false);
+const eventOptionPage = ref(1);
+const eventOptionFinished = ref(false);
+const eventKeyword = ref("");
+const statusOptions = ref([]);
+const roleNameOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -224,6 +250,80 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+function getOptionLabel(options, value) {
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  roleNameOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.EVENT_ROLE_NAME);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    roleNameOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.EVENT_ROLE_NAME);
+  });
+}
+
+function toEventOption(item) {
+  const id = item?.id == null ? "" : String(item.id);
+  return {
+    value: id,
+    label: item?.title || "活动"
+  };
+}
+
+function ensureEventOption(value, label) {
+  const v = value == null ? null : String(value);
+  if (!v) return;
+  if (!eventOptions.value.some(item => item.value === v)) {
+    eventOptions.value = [{ value: v, label: label || "未知活动" }, ...eventOptions.value];
+  }
+}
+
+function fetchEventOptions(reset = false) {
+  if (loadingEventOptions.value) return Promise.resolve();
+  loadingEventOptions.value = true;
+  const params = {
+    pageNum: eventOptionPage.value,
+    pageSize: 20
+  };
+  if (eventKeyword.value) {
+    params.title = eventKeyword.value;
+  }
+  return listEventinfo(params).then(res => {
+    const rows = res.rows || [];
+    const mapped = rows.map(toEventOption);
+    if (reset) {
+      eventOptions.value = mapped;
+    } else {
+      const seen = new Set(eventOptions.value.map(item => item.value));
+      eventOptions.value = eventOptions.value.concat(mapped.filter(item => !seen.has(item.value)));
+    }
+    eventOptionFinished.value = rows.length < params.pageSize;
+  }).finally(() => {
+    loadingEventOptions.value = false;
+  });
+}
+
+function remoteMethodEvent(query) {
+  eventKeyword.value = String(query || "").trim();
+  eventOptionPage.value = 1;
+  eventOptionFinished.value = false;
+  fetchEventOptions(true);
+}
+
+function loadMoreEventOptions() {
+  if (loadingEventOptions.value || eventOptionFinished.value) return;
+  eventOptionPage.value += 1;
+  fetchEventOptions(false);
+}
+
+function handleEventSelectVisibleChange(visible) {
+  if (!visible) return;
+  if (!eventOptions.value.length) {
+    remoteMethodEvent("");
+  }
+}
 
 /** 查询活动与标签多对多关联列表 */
 function getList() {
@@ -291,6 +391,7 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  remoteMethodEvent("");
   open.value = true;
   title.value = "添加活动与标签多对多关联";
 }
@@ -298,9 +399,11 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getEventrole(_id).then(response => {
     form.value = response.data;
+    form.value.eventId = form.value.eventId == null ? null : String(form.value.eventId);
+    ensureEventOption(form.value.eventId);
     open.value = true;
     title.value = "修改活动与标签多对多关联";
   });
@@ -310,14 +413,16 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["eventroleRef"].validate(valid => {
     if (valid) {
+      const payload = { ...form.value };
+      payload.eventId = payload.eventId == null || payload.eventId === "" ? null : String(payload.eventId);
       if (form.value.id != null) {
-        updateEventrole(form.value).then(response => {
+        updateEventrole(payload).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addEventrole(form.value).then(response => {
+        addEventrole(payload).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -329,7 +434,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除活动与标签多对多关联编号为"' + _ids + '"的数据项？').then(function() {
     return delEventrole(_ids);
   }).then(() => {
@@ -347,5 +452,8 @@ function handleExport() {
   }, `eventrole_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+remoteMethodEvent("");
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

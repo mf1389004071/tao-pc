@@ -10,18 +10,22 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="评论人ID" prop="userId">
-          <el-input
+        <el-form-item label="评论人" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入评论人ID"
+            placeholder="请选择评论人"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="父评论ID(回复)" prop="parentId">
+        <el-form-item prop="parentId">
+          <template #label>
+            父评论
+            <LabelHint content="回复时填写" />
+          </template>
           <el-input
             v-model="queryParams.parentId"
-            placeholder="请输入父评论ID(回复)"
+            placeholder="请输入父评论"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -87,13 +91,17 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="知识内容ID" align="center" prop="contentId" />
-      <el-table-column label="评论人ID" align="center" prop="userId" />
-      <el-table-column label="父评论ID(回复)" align="center" prop="parentId" />
+      <el-table-column label="评论人" align="center" prop="userId" />
+      <el-table-column label="父评论" align="center" prop="parentId" />
       <el-table-column label="评论正文" align="center" prop="content" />
       <el-table-column label="点赞数" align="center" prop="likeCount" />
       <el-table-column label="是否置顶" align="center" prop="isPinned" />
-      <el-table-column label="状态：已发布/隐藏" align="center" prop="bizStatus" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="业务状态" align="center" prop="bizStatus" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:knowledgecomment:edit']">修改</el-button>
@@ -117,11 +125,15 @@
         <el-form-item label="知识内容ID" prop="contentId">
           <el-input v-model="form.contentId" placeholder="请输入知识内容ID" />
         </el-form-item>
-        <el-form-item label="评论人ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入评论人ID" />
+        <el-form-item label="评论人" prop="userId">
+          <UserSelect v-model="form.userId" placeholder="请选择评论人" />
         </el-form-item>
-        <el-form-item label="父评论ID(回复)" prop="parentId">
-          <el-input v-model="form.parentId" placeholder="请输入父评论ID(回复)" />
+        <el-form-item prop="parentId">
+          <template #label>
+            父评论
+            <LabelHint content="回复时填写" />
+          </template>
+          <el-input v-model="form.parentId" placeholder="请输入父评论" />
         </el-form-item>
         <el-form-item label="评论正文">
           <editor v-model="form.content" :min-height="192"/>
@@ -145,6 +157,8 @@
 
 <script setup name="Knowledgecomment">
 import { listKnowledgecomment, getKnowledgecomment, delKnowledgecomment, addKnowledgecomment, updateKnowledgecomment } from "@/api/bt10/knowledgecomment";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
+import LabelHint from "@/components/LabelHint";
 
 const { proxy } = getCurrentInstance();
 
@@ -157,6 +171,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -185,6 +201,18 @@ function getList() {
     knowledgecommentList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
   });
 }
 
@@ -247,7 +275,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getKnowledgecomment(_id).then(response => {
     form.value = response.data;
     form.value.isPinned = form.value.isPinned.split(",");
@@ -280,7 +308,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除知识内容评论与回复编号为"' + _ids + '"的数据项？').then(function() {
     return delKnowledgecomment(_ids);
   }).then(() => {
@@ -298,5 +326,7 @@ function handleExport() {
   }, `knowledgecomment_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

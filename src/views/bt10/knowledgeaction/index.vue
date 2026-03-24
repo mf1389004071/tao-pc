@@ -2,21 +2,34 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="知识内容ID" prop="contentId">
-          <el-input
+        <el-form-item label="知识内容" prop="contentId">
+          <el-select
             v-model="queryParams.contentId"
-            placeholder="请输入知识内容ID"
+            placeholder="请选择知识内容"
+            clearable
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodContent"
+            :loading="loadingContentOptions"
+            style="width: 260px"
+            @visible-change="handleContentSelectVisibleChange"
+          >
+            <el-option v-for="item in contentOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="用户" prop="userId">
+          <UserSelect
+            v-model="queryParams.userId"
+            placeholder="请选择用户"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="用户ID" prop="userId">
-          <el-input
-            v-model="queryParams.userId"
-            placeholder="请输入用户ID"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="行为类型" prop="actionType">
+          <el-select v-model="queryParams.actionType" placeholder="请选择行为类型" clearable filterable style="width: 160px">
+            <el-option v-for="item in actionTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -70,10 +83,20 @@
       <el-table v-loading="loading" :data="knowledgeactionList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="知识内容ID" align="center" prop="contentId" />
-      <el-table-column label="类型：点赞/反对/收藏/分享等" align="center" prop="actionType" />
-      <el-table-column label="用户ID" align="center" prop="userId" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="知识内容" align="center" min-width="240">
+        <template #default="scope">{{ getContentLabel(scope.row.contentId) }}</template>
+      </el-table-column>
+      <el-table-column label="行为类型" align="center" prop="actionType">
+        <template #default="scope">
+          {{ getOptionLabel(actionTypeOptions, scope.row.actionType) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="用户" align="center" prop="userId" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:knowledgeaction:edit']">修改</el-button>
@@ -94,22 +117,29 @@
     <!-- 添加或修改用户成长阶段变更历史对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="knowledgeactionRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="知识内容ID" prop="contentId">
-          <el-input v-model="form.contentId" placeholder="请输入知识内容ID" />
-        </el-form-item>
-        <el-form-item label="类型：点赞/反对/收藏/分享等" prop="actionType">
-          <el-select v-model="form.actionType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择类型：点赞/反对/收藏/分享等"
-            :remote-method="remoteMethodActionType"
-            :loading="loadingActionType"
+        <el-form-item label="知识内容" prop="contentId">
+          <el-select
+            v-model="form.contentId"
+            placeholder="请选择知识内容"
+            clearable
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteMethodContent"
+            :loading="loadingContentOptions"
+            style="width: 100%"
+            @visible-change="handleContentSelectVisibleChange"
           >
-            <el-option v-for="item in optionsActionType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
+            <el-option v-for="item in contentOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
+        <el-form-item label="行为类型" prop="actionType">
+          <el-select v-model="form.actionType" placeholder="请选择行为类型" clearable filterable style="width: 100%">
+            <el-option v-for="item in actionTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="用户" prop="userId">
+          <UserSelect v-model="form.userId" placeholder="请选择用户" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -127,6 +157,8 @@
 
 <script setup name="Knowledgeaction">
 import { listKnowledgeaction, getKnowledgeaction, delKnowledgeaction, addKnowledgeaction, updateKnowledgeaction } from "@/api/bt10/knowledgeaction";
+import { listKnowledgecontent } from "@/api/bt10/knowledgecontent";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -139,6 +171,11 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
+const actionTypeOptions = ref([]);
+const contentOptions = ref([]);
+const loadingContentOptions = ref(false);
 
 const data = reactive({
   form: {},
@@ -155,6 +192,39 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+function toContentOption(item) {
+  const id = item?.id == null ? "" : String(item.id);
+  return { value: id, label: item?.title || "知识内容" };
+}
+function ensureContentOption(value, label) {
+  const v = value == null ? null : String(value);
+  if (!v) return;
+  if (!contentOptions.value.some(item => item.value === v)) {
+    contentOptions.value = [{ value: v, label: label || "未知知识内容" }, ...contentOptions.value];
+  }
+}
+function getContentLabel(value) {
+  const v = value == null ? "" : String(value);
+  if (!v) return "—";
+  return contentOptions.value.find(item => item.value === v)?.label || "未知知识内容";
+}
+function remoteMethodContent(query) {
+  if (loadingContentOptions.value) return;
+  loadingContentOptions.value = true;
+  const params = { pageNum: 1, pageSize: 50 };
+  const keyword = String(query || "").trim();
+  if (keyword) params.title = keyword;
+  listKnowledgecontent(params).then(res => {
+    contentOptions.value = (res.rows || []).map(toContentOption);
+  }).finally(() => {
+    loadingContentOptions.value = false;
+  });
+}
+function handleContentSelectVisibleChange(visible) {
+  if (visible && !contentOptions.value.length) {
+    remoteMethodContent("");
+  }
+}
 
 /** 查询用户成长阶段变更历史列表 */
 function getList() {
@@ -163,6 +233,20 @@ function getList() {
     knowledgeactionList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  actionTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ACTION_TYPE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    actionTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ACTION_TYPE);
   });
 }
 
@@ -214,6 +298,7 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  remoteMethodContent("");
   open.value = true;
   title.value = "添加用户成长阶段变更历史";
 }
@@ -221,9 +306,11 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getKnowledgeaction(_id).then(response => {
     form.value = response.data;
+    form.value.contentId = form.value.contentId == null ? null : String(form.value.contentId);
+    ensureContentOption(form.value.contentId);
     open.value = true;
     title.value = "修改用户成长阶段变更历史";
   });
@@ -233,14 +320,17 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["knowledgeactionRef"].validate(valid => {
     if (valid) {
+      const payload = { ...form.value };
+      payload.contentId = payload.contentId == null || payload.contentId === "" ? null : String(payload.contentId);
+      payload.userId = payload.userId == null || payload.userId === "" ? null : String(payload.userId);
       if (form.value.id != null) {
-        updateKnowledgeaction(form.value).then(response => {
+        updateKnowledgeaction(payload).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addKnowledgeaction(form.value).then(response => {
+        addKnowledgeaction(payload).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -252,7 +342,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除用户成长阶段变更历史编号为"' + _ids + '"的数据项？').then(function() {
     return delKnowledgeaction(_ids);
   }).then(() => {
@@ -270,5 +360,7 @@ function handleExport() {
   }, `knowledgeaction_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+Promise.all([loadBt10Enums(), remoteMethodContent("")]).finally(() => {
+  getList();
+});
 </script>

@@ -2,37 +2,22 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="用户ID(sys_user.user_id)" prop="userId">
-          <el-input
+        <el-form-item label="用户" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入用户ID(sys_user.user_id)"
+            placeholder="请选择用户(sys_user.user_id)"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
         <el-form-item label="本次变动金额" prop="amount">
-          <el-input
-            v-model="queryParams.amount"
-            placeholder="请输入本次变动金额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.amount" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="变动前贡献点余额" prop="balanceBefore">
-          <el-input
-            v-model="queryParams.balanceBefore"
-            placeholder="请输入变动前贡献点余额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.balanceBefore" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="变动后贡献点余额" prop="balanceAfter">
-          <el-input
-            v-model="queryParams.balanceAfter"
-            placeholder="请输入变动后贡献点余额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.balanceAfter" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="关联业务ID" prop="relatedId">
           <el-input
@@ -49,6 +34,16 @@
             clearable
             @keyup.enter="handleQuery"
           />
+        </el-form-item>
+        <el-form-item label="类型" prop="actionType">
+          <el-select v-model="queryParams.actionType" placeholder="请选择类型" clearable filterable style="width: 160px">
+            <el-option v-for="item in actionTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关联业务类型" prop="relatedType">
+          <el-select v-model="queryParams.relatedType" placeholder="请选择关联业务类型" clearable filterable style="width: 180px">
+            <el-option v-for="item in relatedTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -102,15 +97,27 @@
       <el-table v-loading="loading" :data="usercontriblogsList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="用户ID(sys_user.user_id)" align="center" prop="userId" />
-      <el-table-column label="类型：充值/购买/退款/奖励等" align="center" prop="actionType" />
+      <el-table-column label="用户" align="center" prop="userId" />
+      <el-table-column label="类型" align="center" prop="actionType">
+        <template #default="scope">
+          {{ getOptionLabel(actionTypeOptions, scope.row.actionType) }}
+        </template>
+      </el-table-column>
       <el-table-column label="本次变动金额" align="center" prop="amount" />
       <el-table-column label="变动前贡献点余额" align="center" prop="balanceBefore" />
       <el-table-column label="变动后贡献点余额" align="center" prop="balanceAfter" />
-      <el-table-column label="关联业务类型" align="center" prop="relatedType" />
+      <el-table-column label="关联业务类型" align="center" prop="relatedType">
+        <template #default="scope">
+          {{ getOptionLabel(relatedTypeOptions, scope.row.relatedType) }}
+        </template>
+      </el-table-column>
       <el-table-column label="关联业务ID" align="center" prop="relatedId" />
       <el-table-column label="支付单号" align="center" prop="paymentNo" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:usercontriblogs:edit']">修改</el-button>
@@ -131,38 +138,26 @@
     <!-- 添加或修改用户对知识内容的行为记录对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="usercontriblogsRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户ID(sys_user.user_id)" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID(sys_user.user_id)" />
+        <el-form-item label="用户" prop="userId">
+          <UserSelect v-model="form.userId" placeholder="请选择用户" />
         </el-form-item>
-        <el-form-item label="类型：充值/购买/退款/奖励等" prop="actionType">
-          <el-select v-model="form.actionType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择类型：充值/购买/退款/奖励等"
-            :remote-method="remoteMethodActionType"
-            :loading="loadingActionType"
-          >
-            <el-option v-for="item in optionsActionType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
+        <el-form-item label="类型" prop="actionType">
+          <el-select v-model="form.actionType" placeholder="请选择类型" clearable filterable style="width: 100%">
+            <el-option v-for="item in actionTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="本次变动金额" prop="amount">
-          <el-input v-model="form.amount" placeholder="请输入本次变动金额" />
+          <el-input-number v-model="form.amount" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="变动前贡献点余额" prop="balanceBefore">
-          <el-input v-model="form.balanceBefore" placeholder="请输入变动前贡献点余额" />
+          <el-input-number v-model="form.balanceBefore" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="变动后贡献点余额" prop="balanceAfter">
-          <el-input v-model="form.balanceAfter" placeholder="请输入变动后贡献点余额" />
+          <el-input-number v-model="form.balanceAfter" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="关联业务类型" prop="relatedType">
-          <el-select v-model="form.relatedType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择关联业务类型"
-            :remote-method="remoteMethodRelatedType"
-            :loading="loadingRelatedType"
-          >
-            <el-option v-for="item in optionsRelatedType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
+          <el-select v-model="form.relatedType" placeholder="请选择关联业务类型" clearable filterable style="width: 100%">
+            <el-option v-for="item in relatedTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="关联业务ID" prop="relatedId">
@@ -187,6 +182,7 @@
 
 <script setup name="Usercontriblogs">
 import { listUsercontriblogs, getUsercontriblogs, delUsercontriblogs, addUsercontriblogs, updateUsercontriblogs } from "@/api/bt10/usercontriblogs";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -199,6 +195,10 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
+const actionTypeOptions = ref([]);
+const relatedTypeOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -228,6 +228,22 @@ function getList() {
     usercontriblogsList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  actionTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ACTION_TYPE);
+  relatedTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.RELATED_TYPE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    actionTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.ACTION_TYPE);
+    relatedTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.RELATED_TYPE);
   });
 }
 
@@ -291,7 +307,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getUsercontriblogs(_id).then(response => {
     form.value = response.data;
     open.value = true;
@@ -322,7 +338,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除用户对知识内容的行为记录编号为"' + _ids + '"的数据项？').then(function() {
     return delUsercontriblogs(_ids);
   }).then(() => {
@@ -340,5 +356,7 @@ function handleExport() {
   }, `usercontriblogs_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

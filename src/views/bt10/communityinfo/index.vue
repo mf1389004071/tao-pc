@@ -10,10 +10,10 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="创建者(合伙人)用户ID" prop="ownerId">
-          <el-input
+        <el-form-item label="创建者(合伙人)用户" prop="ownerId">
+          <UserSelect
             v-model="queryParams.ownerId"
-            placeholder="请输入创建者(合伙人)用户ID"
+            placeholder="请选择创建者(合伙人)用户"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -34,12 +34,15 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="所在城市" prop="city">
-          <el-input
-            v-model="queryParams.city"
-            placeholder="请输入所在城市"
+        <el-form-item label="所在城市" prop="cityCode">
+          <el-cascader
+            v-model="queryParams.cityCode"
+            :options="regionOptions"
+            :props="regionProps"
+            placeholder="请选择省/市/区"
             clearable
-            @keyup.enter="handleQuery"
+            filterable
+            style="width: 220px"
           />
         </el-form-item>
         <el-form-item>
@@ -95,14 +98,22 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="社群名称" align="center" prop="name" />
-      <el-table-column label="创建者(合伙人)用户ID" align="center" prop="ownerId" />
+      <el-table-column label="创建者(合伙人)用户" align="center" prop="ownerId" />
       <el-table-column label="是否公开可见" align="center" prop="isPublic" />
       <el-table-column label="最大成员数" align="center" prop="maxMembers" />
       <el-table-column label="当前成员数" align="center" prop="memberCount" />
       <el-table-column label="封面图" align="center" prop="coverImageUrl" />
-      <el-table-column label="所在城市" align="center" prop="city" />
-      <el-table-column label="状态：正常/已归档/已解散" align="center" prop="bizStatus" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="所在城市" align="center" prop="city">
+        <template #default="scope">
+          {{ scope.row.city ? scope.row.city.split(',').map(c => codeToText[c] || c).filter(Boolean).join(' / ') : '—' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="业务状态" align="center" prop="bizStatus" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:communityinfo:edit']">修改</el-button>
@@ -126,8 +137,8 @@
         <el-form-item label="社群名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入社群名称" />
         </el-form-item>
-        <el-form-item label="创建者(合伙人)用户ID" prop="ownerId">
-          <el-input v-model="form.ownerId" placeholder="请输入创建者(合伙人)用户ID" />
+        <el-form-item label="创建者(合伙人)用户" prop="ownerId">
+          <UserSelect v-model="form.ownerId" placeholder="请选择创建者(合伙人)用户" />
         </el-form-item>
         <el-form-item label="最大成员数" prop="maxMembers">
           <el-input v-model="form.maxMembers" placeholder="请输入最大成员数" />
@@ -138,8 +149,16 @@
         <el-form-item label="封面图" prop="coverImageUrl">
           <el-input v-model="form.coverImageUrl" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="所在城市" prop="city">
-          <el-input v-model="form.city" placeholder="请输入所在城市" />
+        <el-form-item label="所在城市" prop="cityCode">
+          <el-cascader
+            v-model="form.cityCode"
+            :options="regionOptions"
+            :props="regionProps"
+            placeholder="请选择省/市/区"
+            clearable
+            filterable
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -157,6 +176,8 @@
 
 <script setup name="Communityinfo">
 import { listCommunityinfo, getCommunityinfo, delCommunityinfo, addCommunityinfo, updateCommunityinfo } from "@/api/bt10/communityinfo";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
+import { regionData, codeToText } from "element-china-area-data";
 
 const { proxy } = getCurrentInstance();
 
@@ -170,6 +191,10 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 
+const statusOptions = ref([]);
+const regionOptions = regionData;
+const regionProps = { value: "value", label: "label", children: "children" };
+
 const data = reactive({
   form: {},
   queryParams: {
@@ -181,6 +206,7 @@ const data = reactive({
     maxMembers: null,
     memberCount: null,
     coverImageUrl: null,
+    cityCode: null,
     city: null,
     bizStatus: null,
     status: null,
@@ -194,10 +220,25 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询合伙人创建的社群列表 */
 function getList() {
   loading.value = true;
-  listCommunityinfo(queryParams.value).then(response => {
+  const params = { ...queryParams.value };
+  params.city = Array.isArray(params.cityCode) && params.cityCode.length ? params.cityCode.join(",") : null;
+  delete params.cityCode;
+  listCommunityinfo(params).then(response => {
     communityinfoList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
   });
 }
 
@@ -217,6 +258,7 @@ function reset() {
     maxMembers: null,
     memberCount: null,
     coverImageUrl: null,
+    cityCode: null,
     city: null,
     bizStatus: null,
     text1: null,
@@ -267,10 +309,12 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getCommunityinfo(_id).then(response => {
     form.value = response.data;
+    form.value.ownerId = form.value.ownerId == null ? null : String(form.value.ownerId);
     form.value.isPublic = form.value.isPublic.split(",");
+    form.value.cityCode = form.value.city ? String(form.value.city).split(",").map(s => String(s).trim()).filter(Boolean) : null;
     open.value = true;
     title.value = "修改合伙人创建的社群";
   });
@@ -280,15 +324,19 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["communityinfoRef"].validate(valid => {
     if (valid) {
-      form.value.isPublic = form.value.isPublic.join(",");
-      if (form.value.id != null) {
-        updateCommunityinfo(form.value).then(response => {
+      const payload = { ...form.value };
+      payload.ownerId = payload.ownerId == null || payload.ownerId === '' ? null : String(payload.ownerId);
+      payload.isPublic = Array.isArray(payload.isPublic) ? payload.isPublic.join(",") : payload.isPublic;
+      payload.city = Array.isArray(payload.cityCode) && payload.cityCode.length ? payload.cityCode.join(",") : null;
+      delete payload.cityCode;
+      if (payload.id != null) {
+        updateCommunityinfo(payload).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addCommunityinfo(form.value).then(response => {
+        addCommunityinfo(payload).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -300,7 +348,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除合伙人创建的社群编号为"' + _ids + '"的数据项？').then(function() {
     return delCommunityinfo(_ids);
   }).then(() => {
@@ -313,10 +361,15 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
+  const params = { ...queryParams.value };
+  params.city = Array.isArray(params.cityCode) && params.cityCode.length ? params.cityCode.join(",") : null;
+  delete params.cityCode;
   proxy.download('bt10/communityinfo/export', {
-    ...queryParams.value
+    ...params
   }, `communityinfo_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

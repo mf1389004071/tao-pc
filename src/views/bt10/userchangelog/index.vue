@@ -2,29 +2,31 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input
+        <el-form-item label="用户" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入用户ID"
+            placeholder="请选择用户"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="变更字段：角色/状态/积分等" prop="changeField">
-          <el-input
-            v-model="queryParams.changeField"
-            placeholder="请输入变更字段：角色/状态/积分等"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="变更字段" prop="changeField">
+          <el-select v-model="queryParams.changeField" placeholder="请选择变更字段" clearable filterable style="width: 180px">
+            <el-option v-for="item in changeFieldOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="操作人ID" prop="operatorId">
-          <el-input
+        <el-form-item label="操作人" prop="operatorId">
+          <UserSelect
             v-model="queryParams.operatorId"
-            placeholder="请输入操作人ID"
+            placeholder="请选择操作人"
             clearable
             @keyup.enter="handleQuery"
           />
+        </el-form-item>
+        <el-form-item label="操作人类型" prop="operatorType">
+          <el-select v-model="queryParams.operatorType" placeholder="请选择操作人类型" clearable filterable style="width: 160px">
+            <el-option v-for="item in operatorTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="变更时间" prop="changedTime">
           <el-date-picker clearable
@@ -86,13 +88,21 @@
       <el-table v-loading="loading" :data="userchangelogList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="用户ID" align="center" prop="userId" />
-      <el-table-column label="变更字段：角色/状态/积分等" align="center" prop="changeField" />
+      <el-table-column label="用户" align="center" prop="userId" />
+      <el-table-column label="变更字段" align="center" prop="changeField">
+        <template #default="scope">
+          {{ getOptionLabel(changeFieldOptions, scope.row.changeField) }}
+        </template>
+      </el-table-column>
       <el-table-column label="旧值" align="center" prop="oldValue" />
       <el-table-column label="新值" align="center" prop="newValue" />
       <el-table-column label="变更原因" align="center" prop="changeReason" />
-      <el-table-column label="操作人ID" align="center" prop="operatorId" />
-      <el-table-column label="操作人类型" align="center" prop="operatorType" />
+      <el-table-column label="操作人" align="center" prop="operatorId" />
+      <el-table-column label="操作人类型" align="center" prop="operatorType">
+        <template #default="scope">
+          {{ getOptionLabel(operatorTypeOptions, scope.row.operatorType) }}
+        </template>
+      </el-table-column>
         <el-table-column label="变更时间" align="center" prop="changedTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.changedTime, '{y}-{m}-{d}') }}</span>
@@ -119,11 +129,13 @@
     <!-- 添加或修改用户贡献点收支流水对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="userchangelogRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
+        <el-form-item label="用户" prop="userId">
+          <UserSelect v-model="form.userId" placeholder="请选择用户" />
         </el-form-item>
-        <el-form-item label="变更字段：角色/状态/积分等" prop="changeField">
-          <el-input v-model="form.changeField" placeholder="请输入变更字段：角色/状态/积分等" />
+        <el-form-item label="变更字段" prop="changeField">
+          <el-select v-model="form.changeField" placeholder="请选择变更字段" clearable filterable style="width: 100%">
+            <el-option v-for="item in changeFieldOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="旧值" prop="oldValue">
           <el-input v-model="form.oldValue" type="textarea" placeholder="请输入内容" />
@@ -134,18 +146,12 @@
         <el-form-item label="变更原因" prop="changeReason">
           <el-input v-model="form.changeReason" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="操作人ID" prop="operatorId">
-          <el-input v-model="form.operatorId" placeholder="请输入操作人ID" />
+        <el-form-item label="操作人" prop="operatorId">
+          <UserSelect v-model="form.operatorId" placeholder="请选择操作人" />
         </el-form-item>
         <el-form-item label="操作人类型" prop="operatorType">
-          <el-select v-model="form.operatorType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择操作人类型"
-            :remote-method="remoteMethodOperatorType"
-            :loading="loadingOperatorType"
-          >
-            <el-option v-for="item in optionsOperatorType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
+          <el-select v-model="form.operatorType" placeholder="请选择操作人类型" clearable filterable style="width: 100%">
+            <el-option v-for="item in operatorTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="变更时间" prop="changedTime">
@@ -172,6 +178,7 @@
 
 <script setup name="Userchangelog">
 import { listUserchangelog, getUserchangelog, delUserchangelog, addUserchangelog, updateUserchangelog } from "@/api/bt10/userchangelog";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -184,6 +191,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const operatorTypeOptions = ref([]);
+const changeFieldOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -205,6 +214,20 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  operatorTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.OPERATOR_TYPE);
+  changeFieldOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.USER_CHANGE_FIELD);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    operatorTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.OPERATOR_TYPE);
+    changeFieldOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.USER_CHANGE_FIELD);
+  });
+}
 
 /** 查询用户贡献点收支流水列表 */
 function getList() {
@@ -269,9 +292,11 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getUserchangelog(_id).then(response => {
     form.value = response.data;
+    form.value.userId = form.value.userId == null ? null : String(form.value.userId);
+    form.value.operatorId = form.value.operatorId == null ? null : String(form.value.operatorId);
     open.value = true;
     title.value = "修改用户贡献点收支流水";
   });
@@ -281,6 +306,8 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["userchangelogRef"].validate(valid => {
     if (valid) {
+      form.value.userId = form.value.userId == null || form.value.userId === '' ? null : String(form.value.userId);
+      form.value.operatorId = form.value.operatorId == null || form.value.operatorId === '' ? null : String(form.value.operatorId);
       if (form.value.id != null) {
         updateUserchangelog(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -300,7 +327,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除用户贡献点收支流水编号为"' + _ids + '"的数据项？').then(function() {
     return delUserchangelog(_ids);
   }).then(() => {
@@ -318,5 +345,7 @@ function handleExport() {
   }, `userchangelog_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

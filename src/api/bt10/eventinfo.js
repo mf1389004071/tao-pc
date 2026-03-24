@@ -43,3 +43,12 @@ export function delEventinfo(ids) {
     method: 'delete'
   })
 }
+
+// 更新活动业务状态：发布(DRAFT->PUBLISHED)、结束(PUBLISHED->ENDED)、取消(PUBLISHED->CANCELLED)
+export function updateBizStatus(ids, bizStatus) {
+  const _ids = Array.isArray(ids) ? ids.join(',') : ids
+  return request({
+    url: `/bt10/eventinfo/${_ids}/go/${bizStatus}`,
+    method: 'get'
+  })
+}

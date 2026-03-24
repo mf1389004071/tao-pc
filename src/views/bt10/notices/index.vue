@@ -72,14 +72,18 @@
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="标题" align="center" prop="title" />
       <el-table-column label="正文" align="center" prop="content" />
-      <el-table-column label="类型：system等" align="center" prop="type" />
+      <el-table-column label="通知类型" align="center" prop="type" />
       <el-table-column label="是否紧急" align="center" prop="isUrgent" />
         <el-table-column label="发布时间" align="center" prop="publishTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.publishTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:notices:edit']">修改</el-button>
@@ -106,10 +110,9 @@
         <el-form-item label="正文">
           <editor v-model="form.content" :min-height="192"/>
         </el-form-item>
-        <el-form-item label="类型：system等" prop="type">
-          <el-select v-model="form.type" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择类型：system等"
-            :remote-method="remoteMethodType"
+        <el-form-item label="通知类型" prop="type">
+     <el-select v-model="form.type" multiple filterable reserve-keyword remote-show-suffix
+            placeholder="请选择通知类型"
             :loading="loadingType"
           >
             <el-option v-for="item in optionsType" :key="item.value"
@@ -141,6 +144,7 @@
 
 <script setup name="Notices">
 import { listNotices, getNotices, delNotices, addNotices, updateNotices } from "@/api/bt10/notices";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -153,6 +157,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -179,6 +185,18 @@ function getList() {
     noticesList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
   });
 }
 
@@ -243,7 +261,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getNotices(_id).then(response => {
     form.value = response.data;
     form.value.isUrgent = form.value.isUrgent.split(",");
@@ -276,7 +294,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除系统级通知与公告编号为"' + _ids + '"的数据项？').then(function() {
     return delNotices(_ids);
   }).then(() => {
@@ -294,5 +312,7 @@ function handleExport() {
   }, `notices_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

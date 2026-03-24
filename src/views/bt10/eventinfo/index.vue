@@ -66,6 +66,33 @@
         </el-col>
         <el-col :span="1.5">
           <el-button
+            type="primary"
+            plain
+            :disabled="!canPublish"
+            @click="handleBizStatus('publish')"
+            v-hasPermi="['bt10:eventinfo:edit']"
+          >发布</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="warning"
+            plain
+            :disabled="!canEnd"
+            @click="handleBizStatus('end')"
+            v-hasPermi="['bt10:eventinfo:edit']"
+          >结束</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="info"
+            plain
+            :disabled="!canCancel"
+            @click="handleBizStatus('cancel')"
+            v-hasPermi="['bt10:eventinfo:edit']"
+          >取消</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
             type="danger"
             plain
             icon="Delete"
@@ -160,7 +187,11 @@
         <el-table-column label="积分" align="center" prop="basePointsReward" width="70" />
         <el-table-column label="价格" align="center" prop="eventPrice" width="80" />
         <el-table-column label="主办方" align="center" prop="organizer" width="100" show-overflow-tooltip />
-        <el-table-column label="负责人(昵称)" align="center" width="100" show-overflow-tooltip>
+        <el-table-column label="负责人" align="center" width="100" show-overflow-tooltip>
+          <template #header>
+            负责人
+            <LabelHint content="昵称" />
+          </template>
           <template #default="scope">{{ scope.row.pmUserNickName ?? scope.row.pmUserName ?? scope.row.pmUserId ?? '—' }}</template>
         </el-table-column>
         <el-table-column label="状态" align="center" prop="status" width="80">
@@ -188,6 +219,24 @@
         @pagination="getList"
       />
     </el-card>
+
+    <!-- 业务状态变更（发布/结束/取消）二次确认 -->
+    <el-dialog v-model="bizStatusDialogVisible" :title="bizStatusDialogTitle" width="560px" append-to-body>
+      <p class="mb8">{{ bizStatusConfirmIntro }}</p>
+      <el-table :data="bizStatusConfirmRows" border max-height="300">
+        <el-table-column label="ID" prop="id" width="90" align="center" />
+        <el-table-column label="活动名称" prop="title" min-width="180" show-overflow-tooltip />
+        <el-table-column label="业务状态" width="100" align="center">
+          <template #default="scope">
+            {{ bizStatusOptions.find(o => o.value === scope.row.bizStatus)?.label ?? scope.row.bizStatus }}
+          </template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <el-button @click="bizStatusDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmBizStatus">确认</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 添加或修改活动或线下课程主表对话框（三列布局） -->
     <el-dialog :title="title" v-model="open" width="960px" append-to-body>
@@ -301,7 +350,11 @@
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="父活动(周期)" prop="parentEventId">
+            <el-form-item prop="parentEventId">
+              <template #label>
+                父活动
+                <LabelHint content="周期活动时可选择父活动" />
+              </template>
               <el-select v-model="form.parentEventId" placeholder="请选择父活动（选填）" clearable filterable remote
                 :remote-method="remoteMethodParentEvent" :loading="loadingParentEvent" style="width: 100%">
                 <el-option v-for="item in parentEventOptions" :key="item.value" :label="item.label" :value="item.value" />
@@ -392,9 +445,10 @@
 </template>
 
 <script setup name="Eventinfo">
-import { listEventinfo, getEventinfo, delEventinfo, addEventinfo, updateEventinfo } from "@/api/bt10/eventinfo";
+import { listEventinfo, getEventinfo, delEventinfo, addEventinfo, updateEventinfo, updateBizStatus } from "@/api/bt10/eventinfo";
 import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS, BT10_STATUS_KEYS } from "@/utils/Bt10Helper";
 import { listTags } from "@/api/bt10/tags";
+import LabelHint from "@/components/LabelHint";
 import Editor from "@/components/Editor";
 import { regionData, codeToText } from "element-china-area-data";
 
@@ -428,10 +482,23 @@ const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
+const selectedRows = ref([]);
 const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+// 业务状态变更弹窗
+const bizStatusDialogVisible = ref(false);
+const bizStatusDialogTitle = ref("");
+const bizStatusConfirmIntro = ref("");
+const bizStatusConfirmRows = ref([]);
+const bizStatusConfirmIds = ref([]);
+const bizStatusTarget = ref("");
+const BIZ_STATUS_DRAFT = "DRAFT";
+const BIZ_STATUS_PUBLISHED = "PUBLISHED";
+const BIZ_STATUS_ENDED = "ENDED";
+const BIZ_STATUS_CANCELLED = "CANCELLED";
 
 const data = reactive({
   form: {},
@@ -580,8 +647,65 @@ function resetQuery() {
 // 多选框选中数据
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.id);
+  selectedRows.value = selection;
   single.value = selection.length != 1;
   multiple.value = !selection.length;
+}
+
+// 发布：仅当勾选行均为 DRAFT 时可点
+const canPublish = computed(() => {
+  const rows = selectedRows.value;
+  return rows.length > 0 && rows.every(r => r.bizStatus === BIZ_STATUS_DRAFT);
+});
+// 结束：仅当勾选行均为 PUBLISHED 时可点
+const canEnd = computed(() => {
+  const rows = selectedRows.value;
+  return rows.length > 0 && rows.every(r => r.bizStatus === BIZ_STATUS_PUBLISHED);
+});
+// 取消：仅当勾选行均为 PUBLISHED 时可点
+const canCancel = computed(() => {
+  const rows = selectedRows.value;
+  return rows.length > 0 && rows.every(r => r.bizStatus === BIZ_STATUS_PUBLISHED);
+});
+
+/** 打开业务状态变更确认弹窗（发布/结束/取消） */
+function handleBizStatus(action) {
+  const rows = selectedRows.value;
+  if (!rows.length) return;
+  bizStatusConfirmRows.value = rows.map(r => ({ id: r.id, title: r.title, bizStatus: r.bizStatus }));
+  bizStatusConfirmIds.value = ids.value.slice();
+  if (action === "publish") {
+    bizStatusDialogTitle.value = "发布活动";
+    bizStatusConfirmIntro.value = "待发布活动列表如下，是否确认发布？";
+    bizStatusTarget.value = BIZ_STATUS_PUBLISHED;
+  } else if (action === "end") {
+    bizStatusDialogTitle.value = "结束活动";
+    bizStatusConfirmIntro.value = "以下已发布活动将结束，列表如下，是否确认？";
+    bizStatusTarget.value = BIZ_STATUS_ENDED;
+  } else {
+    bizStatusDialogTitle.value = "取消活动";
+    bizStatusConfirmIntro.value = "以下已发布活动将取消，列表如下，是否确认？";
+    bizStatusTarget.value = BIZ_STATUS_CANCELLED;
+  }
+  bizStatusDialogVisible.value = true;
+}
+
+/** 确认业务状态变更：再次校验状态后调用接口 */
+function confirmBizStatus() {
+  const rows = bizStatusConfirmRows.value;
+  const target = bizStatusTarget.value;
+  const requiredCurrent = target === BIZ_STATUS_PUBLISHED ? BIZ_STATUS_DRAFT : BIZ_STATUS_PUBLISHED;
+  const invalid = rows.filter(r => r.bizStatus !== requiredCurrent);
+  if (invalid.length) {
+    proxy.$modal.msgError("所选数据状态已变化，请刷新列表后重试");
+    bizStatusDialogVisible.value = false;
+    return;
+  }
+  updateBizStatus(bizStatusConfirmIds.value, target).then(() => {
+    proxy.$modal.msgSuccess("操作成功");
+    bizStatusDialogVisible.value = false;
+    getList();
+  }).catch(() => {});
 }
 
 /** 标签 id 统一用字符串，避免大 id（>2^53-1）在 JS 中精度丢失导致选项无法匹配、只显示 id */
@@ -609,7 +733,7 @@ function remoteMethodParentEvent(query) {
     params.title = query;
   }
   listEventinfo(params).then(res => {
-    parentEventOptions.value = (res.rows || []).map(item => ({ value: item.id, label: (item.title || '') + (item.id ? ` (ID:${item.id})` : '') }));
+    parentEventOptions.value = (res.rows || []).map(item => ({ value: item.id, label: item.title || '未命名活动' }));
     loadingParentEvent.value = false;
   }).catch(() => { loadingParentEvent.value = false; });
 }
@@ -686,7 +810,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除活动或线下课程主表编号为"' + _ids + '"的数据项？').then(function() {
     return delEventinfo(_ids);
   }).then(() => {

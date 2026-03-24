@@ -117,9 +117,8 @@
           <el-input v-model="form.contentChunk" type="textarea" placeholder="请输入内容" />
         </el-form-item>
         <el-form-item label="${comment}" prop="sourceType">
-          <el-select v-model="form.sourceType" multiple filterable remote reserve-keyword remote-show-suffix
+     <el-select v-model="form.sourceType" multiple filterable reserve-keyword remote-show-suffix
             placeholder="请选择${comment}"
-            :remote-method="remoteMethodSourceType"
             :loading="loadingSourceType"
           >
             <el-option v-for="item in optionsSourceType" :key="item.value"
@@ -251,7 +250,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getAivectors(_id).then(response => {
     form.value = response.data;
     open.value = true;
@@ -282,7 +281,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除AI向量编号为"' + _ids + '"的数据项？').then(function() {
     return delAivectors(_ids);
   }).then(() => {

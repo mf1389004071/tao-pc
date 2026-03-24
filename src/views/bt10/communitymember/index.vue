@@ -10,21 +10,18 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="用户ID" prop="userId">
-          <el-input
+        <el-form-item label="用户" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入用户ID"
+            placeholder="请选择用户"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="角色：群主/管理员/成员" prop="role">
-          <el-input
-            v-model="queryParams.role"
-            placeholder="请输入角色：群主/管理员/成员"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="社群角色" prop="role">
+          <el-select v-model="queryParams.role" placeholder="请选择社群角色" clearable filterable style="width: 180px">
+            <el-option v-for="item in roleOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="加入时间" prop="joinedTime">
           <el-date-picker clearable
@@ -95,9 +92,9 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="社群ID" align="center" prop="communityId" />
-      <el-table-column label="用户ID" align="center" prop="userId" />
-      <el-table-column label="角色：群主/管理员/成员" align="center" prop="role" />
-      <el-table-column label="状态：在群/已退出/被移出" align="center" prop="bizStatus" />
+      <el-table-column label="用户" align="center" prop="userId" />
+      <el-table-column label="社群角色" align="center" prop="role" />
+      <el-table-column label="业务状态" align="center" prop="bizStatus" />
         <el-table-column label="加入时间" align="center" prop="joinedTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.joinedTime, '{y}-{m}-{d}') }}</span>
@@ -108,7 +105,11 @@
             <span>{{ parseTime(scope.row.leftTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:communitymember:edit']">修改</el-button>
@@ -132,11 +133,13 @@
         <el-form-item label="社群ID" prop="communityId">
           <el-input v-model="form.communityId" placeholder="请输入社群ID" />
         </el-form-item>
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
+        <el-form-item label="用户" prop="userId">
+          <UserSelect v-model="form.userId" placeholder="请选择用户" />
         </el-form-item>
-        <el-form-item label="角色：群主/管理员/成员" prop="role">
-          <el-input v-model="form.role" placeholder="请输入角色：群主/管理员/成员" />
+        <el-form-item label="社群角色" prop="role">
+          <el-select v-model="form.role" placeholder="请选择社群角色" clearable filterable style="width: 100%">
+            <el-option v-for="item in roleOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="加入时间" prop="joinedTime">
           <el-date-picker clearable
@@ -170,6 +173,7 @@
 
 <script setup name="Communitymember">
 import { listCommunitymember, getCommunitymember, delCommunitymember, addCommunitymember, updateCommunitymember } from "@/api/bt10/communitymember";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -182,6 +186,9 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
+const roleOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -209,6 +216,20 @@ function getList() {
     communitymemberList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  roleOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.COMMUNITY_MEMBER_ROLE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    roleOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.COMMUNITY_MEMBER_ROLE);
   });
 }
 
@@ -270,7 +291,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getCommunitymember(_id).then(response => {
     form.value = response.data;
     open.value = true;
@@ -301,7 +322,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除通用标签定义表编号为"' + _ids + '"的数据项？').then(function() {
     return delCommunitymember(_ids);
   }).then(() => {
@@ -319,5 +340,7 @@ function handleExport() {
   }, `communitymember_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

@@ -11,44 +11,25 @@
           />
         </el-form-item>
         <el-form-item label="当前积分余额" prop="points">
-          <el-input
-            v-model="queryParams.points"
-            placeholder="请输入当前积分余额"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.points" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="历史累计获得积分" prop="totalPoints">
-          <el-input
-            v-model="queryParams.totalPoints"
-            placeholder="请输入历史累计获得积分"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.totalPoints" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
-        <el-form-item label="贡献点余额(1:1人民币)" prop="contributionPoints">
-          <el-input
-            v-model="queryParams.contributionPoints"
-            placeholder="请输入贡献点余额(1:1人民币)"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item prop="contributionPoints">
+          <template #label>
+            贡献点余额
+            <LabelHint content="1:1人民币" />
+          </template>
+          <el-input-number v-model="queryParams.contributionPoints" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="历史累计贡献点" prop="totalContributionPoints">
-          <el-input
-            v-model="queryParams.totalContributionPoints"
-            placeholder="请输入历史累计贡献点"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.totalContributionPoints" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
-        <el-form-item label="成长阶段：入门/学员/高手/导师" prop="growthStage">
-          <el-input
-            v-model="queryParams.growthStage"
-            placeholder="请输入成长阶段：入门/学员/高手/导师"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="成长阶段" prop="growthStage">
+          <el-select v-model="queryParams.growthStage" placeholder="请选择成长阶段" clearable filterable style="width: 180px">
+            <el-option v-for="item in growthStageOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="加入/注册日期" prop="joinDate">
           <el-date-picker clearable
@@ -130,18 +111,26 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="小鹅通用户ID(同步)" prop="xiaoeUserId">
+        <el-form-item prop="xiaoeUserId">
+          <template #label>
+            小鹅通用户ID
+            <LabelHint content="同步" />
+          </template>
           <el-input
             v-model="queryParams.xiaoeUserId"
-            placeholder="请输入小鹅通用户ID(同步)"
+            placeholder="请输入小鹅通用户ID"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="邀请人用户ID(sys_user.user_id)" prop="inviterId">
-          <el-input
+        <el-form-item prop="inviterId">
+          <template #label>
+            邀请人用户ID
+            <LabelHint content="sys_user.user_id" />
+          </template>
+          <UserSelect
             v-model="queryParams.inviterId"
-            placeholder="请输入邀请人用户ID(sys_user.user_id)"
+            placeholder="请选择邀请人用户"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -154,13 +143,10 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="业务角色：创始人/联创/合伙人/高手/城市主理人/会员" prop="bizRole">
-          <el-input
-            v-model="queryParams.bizRole"
-            placeholder="请输入业务角色：创始人/联创/合伙人/高手/城市主理人/会员"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+        <el-form-item label="业务角色" prop="bizRole">
+          <el-select v-model="queryParams.bizRole" placeholder="请选择业务角色" clearable filterable style="width: 220px">
+            <el-option v-for="item in bizRoleOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -213,13 +199,23 @@
 
       <el-table v-loading="loading" :data="userprofilesList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="用户ID(主键且外键)" align="center" prop="userId" />
+        <el-table-column label="用户ID" align="center" prop="userId">
+          <template #header>
+            用户ID
+            <LabelHint content="主键且外键" />
+          </template>
+        </el-table-column>
       <el-table-column label="真实姓名" align="center" prop="realName" />
       <el-table-column label="当前积分余额" align="center" prop="points" />
       <el-table-column label="历史累计获得积分" align="center" prop="totalPoints" />
-      <el-table-column label="贡献点余额(1:1人民币)" align="center" prop="contributionPoints" />
+      <el-table-column label="贡献点余额" align="center" prop="contributionPoints">
+        <template #header>
+          贡献点余额
+          <LabelHint content="1:1人民币" />
+        </template>
+      </el-table-column>
       <el-table-column label="历史累计贡献点" align="center" prop="totalContributionPoints" />
-      <el-table-column label="成长阶段：入门/学员/高手/导师" align="center" prop="growthStage" />
+      <el-table-column label="成长阶段" align="center" prop="growthStage" />
         <el-table-column label="加入/注册日期" align="center" prop="joinDate" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.joinDate, '{y}-{m}-{d}') }}</span>
@@ -238,23 +234,57 @@
       <el-table-column label="Google用户ID" align="center" prop="googleUserid" />
       <el-table-column label="Apple用户ID" align="center" prop="appleUserid" />
       <el-table-column label="Outlook用户ID" align="center" prop="outlookUserid" />
-      <el-table-column label="小鹅通用户ID(同步)" align="center" prop="xiaoeUserId" />
+      <el-table-column label="小鹅通用户ID" align="center" prop="xiaoeUserId">
+        <template #header>
+          小鹅通用户ID
+          <LabelHint content="同步" />
+        </template>
+      </el-table-column>
       <el-table-column label="小鹅通原始数据快照" align="center" prop="xiaoeData" />
-      <el-table-column label="邀请人用户ID(sys_user.user_id)" align="center" prop="inviterId" />
+      <el-table-column label="邀请人用户" align="center" prop="inviterId">
+        <template #header>
+          邀请人用户
+          <LabelHint content="sys_user.user_id" />
+        </template>
+      </el-table-column>
       <el-table-column label="本人邀请码，用于邀请好友" align="center" prop="invitationCode" />
-      <el-table-column label="业务角色：创始人/联创/合伙人/高手/城市主理人/会员" align="center" prop="bizRole" />
+      <el-table-column label="业务角色" align="center" prop="bizRole" />
       <el-table-column label="最美照片URL" align="center" prop="bestPhotoUrl" />
-      <el-table-column label="微信头像URL(同步用)" align="center" prop="avatarWechatUrl" />
+      <el-table-column label="微信头像URL" align="center" prop="avatarWechatUrl">
+        <template #header>
+          微信头像URL
+          <LabelHint content="同步用" />
+        </template>
+      </el-table-column>
       <el-table-column label="宣传用头像URL" align="center" prop="avatarPromoUrl" />
       <el-table-column label="个人宣传图URL" align="center" prop="promoImageUrl" />
-      <el-table-column label="心树图URL(商业定位成果)" align="center" prop="heartTreeUrl" />
-      <el-table-column label="心钥图URL(商业定位成果)" align="center" prop="heartKeyUrl" />
-      <el-table-column label="商业定位文案(探索本质)" align="center" prop="businessPositioning" />
+      <el-table-column label="心树图URL" align="center" prop="heartTreeUrl">
+        <template #header>
+          心树图URL
+          <LabelHint content="商业定位成果" />
+        </template>
+      </el-table-column>
+      <el-table-column label="心钥图URL" align="center" prop="heartKeyUrl">
+        <template #header>
+          心钥图URL
+          <LabelHint content="商业定位成果" />
+        </template>
+      </el-table-column>
+      <el-table-column label="商业定位文案" align="center" prop="businessPositioning">
+        <template #header>
+          商业定位文案
+          <LabelHint content="探索本质" />
+        </template>
+      </el-table-column>
       <el-table-column label="天赋解读与能力总结" align="center" prop="talentSummary" />
       <el-table-column label="可交流时段描述" align="center" prop="availableTimeSlots" />
-      <el-table-column label="可约状态：可约/已约/不约" align="center" prop="appointmentStatus" />
+      <el-table-column label="可约状态" align="center" prop="appointmentStatus" />
       <el-table-column label="额外画像信息(JSON)，如家庭成员/挑战列表等" align="center" prop="extraProfile" />
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:userprofiles:edit']">修改</el-button>
@@ -273,111 +303,97 @@
     </el-card>
 
     <!-- 添加或修改用户和角色关联表对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="960px" append-to-body>
       <el-form ref="userprofilesRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="真实姓名" prop="realName">
-          <el-input v-model="form.realName" placeholder="请输入真实姓名" />
-        </el-form-item>
-        <el-form-item label="当前积分余额" prop="points">
-          <el-input v-model="form.points" placeholder="请输入当前积分余额" />
-        </el-form-item>
-        <el-form-item label="历史累计获得积分" prop="totalPoints">
-          <el-input v-model="form.totalPoints" placeholder="请输入历史累计获得积分" />
-        </el-form-item>
-        <el-form-item label="贡献点余额(1:1人民币)" prop="contributionPoints">
-          <el-input v-model="form.contributionPoints" placeholder="请输入贡献点余额(1:1人民币)" />
-        </el-form-item>
-        <el-form-item label="历史累计贡献点" prop="totalContributionPoints">
-          <el-input v-model="form.totalContributionPoints" placeholder="请输入历史累计贡献点" />
-        </el-form-item>
-        <el-form-item label="成长阶段：入门/学员/高手/导师" prop="growthStage">
-          <el-input v-model="form.growthStage" placeholder="请输入成长阶段：入门/学员/高手/导师" />
-        </el-form-item>
-        <el-form-item label="加入/注册日期" prop="joinDate">
-          <el-date-picker clearable
-            v-model="form.joinDate"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择加入/注册日期">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="最后活跃时间" prop="lastActiveAt">
-          <el-date-picker clearable
-            v-model="form.lastActiveAt"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择最后活跃时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="微信开放平台 unionid" prop="wechatUnionid">
-          <el-input v-model="form.wechatUnionid" placeholder="请输入微信开放平台 unionid" />
-        </el-form-item>
-        <el-form-item label="微信开放平台 openid" prop="wechatOpenid">
-          <el-input v-model="form.wechatOpenid" placeholder="请输入微信开放平台 openid" />
-        </el-form-item>
-        <el-form-item label="小程序 openid" prop="miniappOpenid">
-          <el-input v-model="form.miniappOpenid" placeholder="请输入小程序 openid" />
-        </el-form-item>
-        <el-form-item label="企业微信用户ID" prop="wxWorkUserid">
-          <el-input v-model="form.wxWorkUserid" placeholder="请输入企业微信用户ID" />
-        </el-form-item>
-        <el-form-item label="Facebook用户ID" prop="facebookUserid">
-          <el-input v-model="form.facebookUserid" placeholder="请输入Facebook用户ID" />
-        </el-form-item>
-        <el-form-item label="Google用户ID" prop="googleUserid">
-          <el-input v-model="form.googleUserid" placeholder="请输入Google用户ID" />
-        </el-form-item>
-        <el-form-item label="Apple用户ID" prop="appleUserid">
-          <el-input v-model="form.appleUserid" placeholder="请输入Apple用户ID" />
-        </el-form-item>
-        <el-form-item label="Outlook用户ID" prop="outlookUserid">
-          <el-input v-model="form.outlookUserid" placeholder="请输入Outlook用户ID" />
-        </el-form-item>
-        <el-form-item label="小鹅通用户ID(同步)" prop="xiaoeUserId">
-          <el-input v-model="form.xiaoeUserId" placeholder="请输入小鹅通用户ID(同步)" />
-        </el-form-item>
-        <el-form-item label="邀请人用户ID(sys_user.user_id)" prop="inviterId">
-          <el-input v-model="form.inviterId" placeholder="请输入邀请人用户ID(sys_user.user_id)" />
-        </el-form-item>
-        <el-form-item label="本人邀请码，用于邀请好友" prop="invitationCode">
-          <el-input v-model="form.invitationCode" placeholder="请输入本人邀请码，用于邀请好友" />
-        </el-form-item>
-        <el-form-item label="业务角色：创始人/联创/合伙人/高手/城市主理人/会员" prop="bizRole">
-          <el-input v-model="form.bizRole" placeholder="请输入业务角色：创始人/联创/合伙人/高手/城市主理人/会员" />
-        </el-form-item>
-        <el-form-item label="最美照片URL" prop="bestPhotoUrl">
-          <el-input v-model="form.bestPhotoUrl" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="微信头像URL(同步用)" prop="avatarWechatUrl">
-          <el-input v-model="form.avatarWechatUrl" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="宣传用头像URL" prop="avatarPromoUrl">
-          <el-input v-model="form.avatarPromoUrl" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="个人宣传图URL" prop="promoImageUrl">
-          <el-input v-model="form.promoImageUrl" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="心树图URL(商业定位成果)" prop="heartTreeUrl">
-          <el-input v-model="form.heartTreeUrl" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="心钥图URL(商业定位成果)" prop="heartKeyUrl">
-          <el-input v-model="form.heartKeyUrl" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="商业定位文案(探索本质)" prop="businessPositioning">
-          <el-input v-model="form.businessPositioning" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="天赋解读与能力总结" prop="talentSummary">
-          <el-input v-model="form.talentSummary" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="可交流时段描述" prop="availableTimeSlots">
-          <el-input v-model="form.availableTimeSlots" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="额外画像信息(JSON)，如家庭成员/挑战列表等" prop="extraProfile">
-          <file-upload v-model="form.extraProfile"/>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="8"><el-form-item label="真实姓名" prop="realName"><el-input v-model="form.realName" placeholder="请输入真实姓名" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="当前积分余额" prop="points"><el-input-number v-model="form.points" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="历史累计获得积分" prop="totalPoints"><el-input-number v-model="form.totalPoints" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8">
+            <el-form-item prop="contributionPoints">
+              <template #label>
+                贡献点余额
+                <LabelHint content="1:1人民币" />
+              </template>
+              <el-input-number v-model="form.contributionPoints" :min="0" controls-position="right" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8"><el-form-item label="历史累计贡献点" prop="totalContributionPoints"><el-input-number v-model="form.totalContributionPoints" :min="0" controls-position="right" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="成长阶段" prop="growthStage"><el-select v-model="form.growthStage" placeholder="请选择成长阶段" clearable filterable style="width: 100%"><el-option v-for="item in growthStageOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="加入/注册日期" prop="joinDate"><el-date-picker clearable v-model="form.joinDate" type="date" value-format="YYYY-MM-DD" placeholder="请选择加入/注册日期" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="最后活跃时间" prop="lastActiveAt"><el-date-picker clearable v-model="form.lastActiveAt" type="date" value-format="YYYY-MM-DD" placeholder="请选择最后活跃时间" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="微信开放平台 unionid" prop="wechatUnionid"><el-input v-model="form.wechatUnionid" placeholder="请输入微信开放平台 unionid" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="微信开放平台 openid" prop="wechatOpenid"><el-input v-model="form.wechatOpenid" placeholder="请输入微信开放平台 openid" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="小程序 openid" prop="miniappOpenid"><el-input v-model="form.miniappOpenid" placeholder="请输入小程序 openid" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="企业微信用户ID" prop="wxWorkUserid"><el-input v-model="form.wxWorkUserid" placeholder="请输入企业微信用户ID" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="Facebook用户ID" prop="facebookUserid"><el-input v-model="form.facebookUserid" placeholder="请输入Facebook用户ID" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="Google用户ID" prop="googleUserid"><el-input v-model="form.googleUserid" placeholder="请输入Google用户ID" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="Apple用户ID" prop="appleUserid"><el-input v-model="form.appleUserid" placeholder="请输入Apple用户ID" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="Outlook用户ID" prop="outlookUserid"><el-input v-model="form.outlookUserid" placeholder="请输入Outlook用户ID" /></el-form-item></el-col>
+          <el-col :span="8">
+            <el-form-item prop="xiaoeUserId">
+              <template #label>
+                小鹅通用户ID
+                <LabelHint content="同步" />
+              </template>
+              <el-input v-model="form.xiaoeUserId" placeholder="请输入小鹅通用户ID" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item prop="inviterId">
+              <template #label>
+                邀请人用户
+                <LabelHint content="sys_user.user_id" />
+              </template>
+              <UserSelect v-model="form.inviterId" placeholder="请选择邀请人用户" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8"><el-form-item label="本人邀请码，用于邀请好友" prop="invitationCode"><el-input v-model="form.invitationCode" placeholder="请输入本人邀请码，用于邀请好友" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="业务角色" prop="bizRole"><el-select v-model="form.bizRole" placeholder="请选择业务角色" clearable filterable style="width: 100%"><el-option v-for="item in bizRoleOptions" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="最美照片URL" prop="bestPhotoUrl"><el-input v-model="form.bestPhotoUrl" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="24">
+            <el-form-item prop="avatarWechatUrl">
+              <template #label>
+                微信头像URL
+                <LabelHint content="同步用" />
+              </template>
+              <el-input v-model="form.avatarWechatUrl" type="textarea" placeholder="请输入内容" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24"><el-form-item label="宣传用头像URL" prop="avatarPromoUrl"><el-input v-model="form.avatarPromoUrl" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="个人宣传图URL" prop="promoImageUrl"><el-input v-model="form.promoImageUrl" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="24">
+            <el-form-item prop="heartTreeUrl">
+              <template #label>
+                心树图URL
+                <LabelHint content="商业定位成果" />
+              </template>
+              <el-input v-model="form.heartTreeUrl" type="textarea" placeholder="请输入内容" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item prop="heartKeyUrl">
+              <template #label>
+                心钥图URL
+                <LabelHint content="商业定位成果" />
+              </template>
+              <el-input v-model="form.heartKeyUrl" type="textarea" placeholder="请输入内容" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item prop="businessPositioning">
+              <template #label>
+                商业定位文案
+                <LabelHint content="探索本质" />
+              </template>
+              <el-input v-model="form.businessPositioning" type="textarea" placeholder="请输入内容" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24"><el-form-item label="天赋解读与能力总结" prop="talentSummary"><el-input v-model="form.talentSummary" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="可交流时段描述" prop="availableTimeSlots"><el-input v-model="form.availableTimeSlots" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="额外画像信息(JSON)，如家庭成员/挑战列表等" prop="extraProfile"><file-upload v-model="form.extraProfile"/></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="备注" prop="remark"><el-input v-model="form.remark" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -391,6 +407,8 @@
 
 <script setup name="Userprofiles">
 import { listUserprofiles, getUserprofiles, delUserprofiles, addUserprofiles, updateUserprofiles } from "@/api/bt10/userprofiles";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
+import LabelHint from "@/components/LabelHint";
 
 const { proxy } = getCurrentInstance();
 
@@ -403,6 +421,10 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
+const growthStageOptions = ref([]);
+const bizRoleOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -456,6 +478,22 @@ function getList() {
     userprofilesList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  growthStageOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.GROWTH_STAGE);
+  bizRoleOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.BIZ_ROLE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+    growthStageOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.GROWTH_STAGE);
+    bizRoleOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.BIZ_ROLE);
   });
 }
 
@@ -550,6 +588,7 @@ function handleUpdate(row) {
   const _userId = row.userId || ids.value
   getUserprofiles(_userId).then(response => {
     form.value = response.data;
+    form.value.inviterId = form.value.inviterId == null ? null : String(form.value.inviterId);
     open.value = true;
     title.value = "修改用户和角色关联表";
   });
@@ -559,6 +598,7 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["userprofilesRef"].validate(valid => {
     if (valid) {
+      form.value.inviterId = form.value.inviterId == null || form.value.inviterId === '' ? null : String(form.value.inviterId);
       if (form.value.userId != null) {
         updateUserprofiles(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -596,5 +636,7 @@ function handleExport() {
   }, `userprofiles_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

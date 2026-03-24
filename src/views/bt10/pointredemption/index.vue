@@ -2,10 +2,10 @@
   <div class="app-container">
     <el-card shadow="never" body-class="search-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input
+        <el-form-item label="用户" prop="userId">
+          <UserSelect
             v-model="queryParams.userId"
-            placeholder="请输入用户ID"
+            placeholder="请选择用户"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -19,12 +19,7 @@
           />
         </el-form-item>
         <el-form-item label="消耗积分" prop="pointsUsed">
-          <el-input
-            v-model="queryParams.pointsUsed"
-            placeholder="请输入消耗积分"
-            clearable
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.pointsUsed" :min="0" controls-position="right" style="width: 180px" />
         </el-form-item>
         <el-form-item label="兑换码" prop="redemptionCode">
           <el-input
@@ -102,10 +97,10 @@
       <el-table v-loading="loading" :data="pointredemptionList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="用户" align="center" prop="userId" />
       <el-table-column label="兑换商品ID" align="center" prop="productId" />
       <el-table-column label="消耗积分" align="center" prop="pointsUsed" />
-      <el-table-column label="状态：待发放/已核销/已取消/已过期" align="center" prop="bizStatus" />
+      <el-table-column label="业务状态" align="center" prop="bizStatus" />
       <el-table-column label="兑换码" align="center" prop="redemptionCode" />
         <el-table-column label="使用/核销时间" align="center" prop="usedTime" width="180">
           <template #default="scope">
@@ -117,7 +112,11 @@
             <span>{{ parseTime(scope.row.expiredTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-      <el-table-column label="状态" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:pointredemption:edit']">修改</el-button>
@@ -138,14 +137,14 @@
     <!-- 添加或修改用户积分兑换记录对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="pointredemptionRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
+        <el-form-item label="用户" prop="userId">
+          <UserSelect v-model="form.userId" placeholder="请选择用户" />
         </el-form-item>
         <el-form-item label="兑换商品ID" prop="productId">
           <el-input v-model="form.productId" placeholder="请输入兑换商品ID" />
         </el-form-item>
         <el-form-item label="消耗积分" prop="pointsUsed">
-          <el-input v-model="form.pointsUsed" placeholder="请输入消耗积分" />
+          <el-input-number v-model="form.pointsUsed" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item label="兑换码" prop="redemptionCode">
           <el-input v-model="form.redemptionCode" placeholder="请输入兑换码" />
@@ -182,6 +181,7 @@
 
 <script setup name="Pointredemption">
 import { listPointredemption, getPointredemption, delPointredemption, addPointredemption, updatePointredemption } from "@/api/bt10/pointredemption";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -194,6 +194,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -222,6 +224,18 @@ function getList() {
     pointredemptionList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
   });
 }
 
@@ -288,7 +302,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getPointredemption(_id).then(response => {
     form.value = response.data;
     open.value = true;
@@ -319,7 +333,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除用户积分兑换记录编号为"' + _ids + '"的数据项？').then(function() {
     return delPointredemption(_ids);
   }).then(() => {
@@ -337,5 +351,7 @@ function handleExport() {
   }, `pointredemption_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

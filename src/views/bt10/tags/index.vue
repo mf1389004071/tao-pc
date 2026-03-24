@@ -47,13 +47,7 @@
           />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum">
-          <el-input
-            v-model="queryParams.orderNum"
-            placeholder="排序值"
-            clearable
-            style="width: 100px"
-            @keyup.enter="handleQuery"
-          />
+          <el-input-number v-model="queryParams.orderNum" :min="0" controls-position="right" style="width: 120px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -116,7 +110,11 @@
         <el-table-column label="标签名称" align="center" prop="name" min-width="120" />
         <el-table-column label="父标签" align="center" prop="parentId" width="90" />
         <el-table-column label="排序" align="center" prop="orderNum" width="80" />
-        <el-table-column label="状态" align="center" prop="status" width="80" />
+        <el-table-column label="状态" align="center" prop="status" width="80">
+          <template #default="scope">
+            {{ getOptionLabel(statusOptions, scope.row.status) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['bt10:tags:edit']">修改</el-button>
@@ -196,6 +194,7 @@
 
 <script setup name="Tags">
 import { listTags, getTags, delTags, addTags, updateTags } from "@/api/bt10/tags";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -208,6 +207,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const statusOptions = ref([]);
 
 // 标签类型枚举（按描述配置，用于可搜索下拉与列表展示；按用途补齐活动等场景）
 const tagTypeOptions = [
@@ -294,6 +295,18 @@ function getList() {
   });
 }
 
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    statusOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.STATUS);
+  });
+}
+
 // 取消按钮
 function cancel() {
   open.value = false;
@@ -352,7 +365,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value;
+  const _id = row?.id ?? ids.value?.[0];
   getTags(_id).then(response => {
     form.value = { ...response.data, orderNum: response.data.orderNum ?? 0 };
     open.value = true;
@@ -384,7 +397,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除所选标签？').then(function() {
     return delTags(_ids);
   }).then(() => {
@@ -402,5 +415,7 @@ function handleExport() {
   }, `tags_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>

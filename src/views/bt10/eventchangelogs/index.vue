@@ -18,10 +18,10 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="操作人ID" prop="operatorId">
-          <el-input
+        <el-form-item label="操作人" prop="operatorId">
+          <UserSelect
             v-model="queryParams.operatorId"
-            placeholder="请输入操作人ID"
+            placeholder="请选择操作人"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -91,8 +91,12 @@
       <el-table-column label="旧值" align="center" prop="oldValue" />
       <el-table-column label="新值" align="center" prop="newValue" />
       <el-table-column label="变更原因" align="center" prop="changeReason" />
-      <el-table-column label="操作人ID" align="center" prop="operatorId" />
-      <el-table-column label="操作人类型" align="center" prop="operatorType" />
+      <el-table-column label="操作人" align="center" prop="operatorId" />
+      <el-table-column label="操作人类型" align="center" prop="operatorType">
+        <template #default="scope">
+          {{ getOptionLabel(operatorTypeOptions, scope.row.operatorType) }}
+        </template>
+      </el-table-column>
         <el-table-column label="变更时间" align="center" prop="changedTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.changedTime, '{y}-{m}-{d}') }}</span>
@@ -134,18 +138,12 @@
         <el-form-item label="变更原因" prop="changeReason">
           <el-input v-model="form.changeReason" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="操作人ID" prop="operatorId">
-          <el-input v-model="form.operatorId" placeholder="请输入操作人ID" />
+        <el-form-item label="操作人" prop="operatorId">
+          <UserSelect v-model="form.operatorId" placeholder="请选择操作人" />
         </el-form-item>
         <el-form-item label="操作人类型" prop="operatorType">
-          <el-select v-model="form.operatorType" multiple filterable remote reserve-keyword remote-show-suffix
-            placeholder="请选择操作人类型"
-            :remote-method="remoteMethodOperatorType"
-            :loading="loadingOperatorType"
-          >
-            <el-option v-for="item in optionsOperatorType" :key="item.value"
-              :label="item.label" :value="item.value"
-            />
+          <el-select v-model="form.operatorType" placeholder="请选择操作人类型" clearable filterable style="width: 100%">
+            <el-option v-for="item in operatorTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="变更时间" prop="changedTime">
@@ -172,6 +170,7 @@
 
 <script setup name="Eventchangelogs">
 import { listEventchangelogs, getEventchangelogs, delEventchangelogs, addEventchangelogs, updateEventchangelogs } from "@/api/bt10/eventchangelogs";
+import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
 
@@ -184,6 +183,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const operatorTypeOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -205,6 +205,18 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+function getOptionLabel(options, value) {
+  if (value == null || value === '') return value;
+  return options.find(item => item.value === value)?.label ?? value;
+}
+
+function loadBt10Enums() {
+  operatorTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.OPERATOR_TYPE);
+  return ensureBt10EnumsAndStatusLoaded().then(() => {
+    operatorTypeOptions.value = getBt10OptionsFromCache(BT10_ENUM_KEYS.OPERATOR_TYPE);
+  });
+}
 
 /** 查询活动所需角色列表 */
 function getList() {
@@ -269,9 +281,10 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _id = row.id || ids.value
+  const _id = row?.id ?? ids.value?.[0];
   getEventchangelogs(_id).then(response => {
     form.value = response.data;
+    form.value.operatorId = form.value.operatorId == null ? null : String(form.value.operatorId);
     open.value = true;
     title.value = "修改活动所需角色";
   });
@@ -281,6 +294,7 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["eventchangelogsRef"].validate(valid => {
     if (valid) {
+      form.value.operatorId = form.value.operatorId == null || form.value.operatorId === '' ? null : String(form.value.operatorId);
       if (form.value.id != null) {
         updateEventchangelogs(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -300,7 +314,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
+  const _ids = row?.id ?? ids.value;
   proxy.$modal.confirm('是否确认删除活动所需角色编号为"' + _ids + '"的数据项？').then(function() {
     return delEventchangelogs(_ids);
   }).then(() => {
@@ -318,5 +332,7 @@ function handleExport() {
   }, `eventchangelogs_${new Date().getTime()}.xlsx`)
 }
 
-getList();
+loadBt10Enums().finally(() => {
+  getList();
+});
 </script>
