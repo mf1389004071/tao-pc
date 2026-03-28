@@ -1,20 +1,39 @@
 <script setup lang="ts">
 import { getAction } from '@/utils/request';
 
-function oauthLogin(provider: string) {
+async function openAuthUrl(source: string) {
+  // 后端 AjaxResult 结构为 code/msg/data，授权跳转 URL 在 data
+  const response = await getAction<string>(`/system/auth/login/${source}`);
+  const url = (response as any)?.data as string | undefined;
+  if (!url) {
+    throw new Error('EMPTY_AUTHORIZE_URL');
+  }
+  window.open(url, '_blank');
+}
+
+async function oauthLogin(provider: string) {
   console.log(`开始 ${provider} 登录流程`);
-  // 打开链接 /system/auth
-  getAction<string>(`/system/auth/login/${provider}`)
-    .then((response) => {
-      if (response && response.msg) {
-        window.open(response.msg, '_blank');
-      } else {
-        console.error('登录链接获取失败', response);
-      }
-    })
-    .catch((error) => {
+  if (provider !== 'wechat') {
+    try {
+      await openAuthUrl(provider);
+    } catch (error) {
       console.error(`登录 ${provider} 失败`, error);
-    });
+    }
+    return;
+  }
+
+  // TODO(微信扫码登录): 按“有开放平台 wechat_open 优先，否则降级公众号 wechat_mp”
+  // 前提：后端 application-auth.yml 配置了 justauth.sources.wechat_open 或 wechat_mp
+  try {
+    await openAuthUrl('wechat_open');
+  } catch (error1) {
+    console.warn('wechat_open 登录不可用，尝试 wechat_mp', error1);
+    try {
+      await openAuthUrl('wechat_mp');
+    } catch (error2) {
+      console.error('微信登录失败（wechat_open/wechat_mp 均不可用）', error2);
+    }
+  }
 }
 </script>
 <template>
