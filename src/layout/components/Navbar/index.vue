@@ -2,9 +2,6 @@
 import { ElMessageBox } from 'element-plus'
 import Breadcrumb from './Breadcrumb.vue'
 import TopNav from './TopNav.vue'
-import RuoYiGitee from './RuoYi/Git/gitee.vue'
-import RuoYiGithub from './RuoYi/Git/github.vue'
-import RuoYiDoc from './RuoYi/Doc/index.vue'
 import Hamburger from '@/components/Hamburger/index.vue'
 import Screenfull from '@/components/Screenfull/index.vue'
 import SizeSelect from '@/components/SizeSelect/index.vue'
@@ -65,18 +62,6 @@ function setLayout() {
     <div class="right-menu">
       <template v-if="appStore.device !== 'mobile'">
         <header-search id="header-search" class="right-menu-item" />
-
-        <el-tooltip content="gitee源码地址" effect="dark" placement="bottom">
-          <ruo-yi-gitee id="ruoyi-gitee" class="right-menu-item hover-effect svg-menu-item" />
-        </el-tooltip>
-
-        <el-tooltip content="github源码地址" effect="dark" placement="bottom">
-          <ruo-yi-github id="ruoyi-github" class="right-menu-item hover-effect svg-menu-item" />
-        </el-tooltip>
-
-        <el-tooltip content="文档地址" effect="dark" placement="bottom">
-          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect svg-menu-item" />
-        </el-tooltip>
 
         <el-tooltip content="专注模式" effect="dark" placement="bottom">
           <screenfull id="screenfull" class="right-menu-item hover-effect svg-menu-item" />

@@ -62,8 +62,8 @@
           <el-col :span="24">
             <el-card class="welcome-card">
               <div class="welcome-container">
-                <h1 class="welcome-title">欢迎使用 RuoYi-Geek-Vue3</h1>
-                <p class="welcome-desc">基于 Vue3、TypeScript、Vite、Element-Plus 的后台管理系统</p>
+                <h1 class="welcome-title">欢迎使用 10倍好 成长系统</h1>
+                <p class="welcome-desc">十倍好智慧成长平台 · 活动课程、知识库、成长体系与日常运营的一站式入口</p>
               </div>
 
               <el-row :gutter="20" class="feature-section">
@@ -114,32 +114,6 @@
             </el-card>
           </el-col>
 
-          <!-- 内置功能说明 -->
-          <el-col :span="24">
-            <el-card class="features-card">
-              <template #header>
-                <div class="card-header">
-                  <span>内置功能说明</span>
-                </div>
-              </template>
-              <el-row :gutter="20">
-                <el-col :span="12" v-for="(section, index) in [
-                  { header: '内置插件', items: plugins },
-                  { header: '内置指令', items: directives }
-                ]" :key="index">
-                  <div class="feature-group">
-                    <h3 class="group-title">{{ section.header }}</h3>
-                    <div class="feature-list">
-                      <div v-for="(item, idx) in section.items" :key="idx" class="feature-list-item">
-                        <h4>{{ item.name }}</h4>
-                        <p>{{ item.description }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </el-col>
-              </el-row>
-            </el-card>
-          </el-col>
         </el-row>
       </el-col>
     </el-row>
@@ -168,17 +142,6 @@ interface Feature {
   description: string;
 }
 
-interface Plugin {
-  name: string;
-  description: string;
-}
-
-interface Directive {
-  name: string;
-  description: string;
-  usage: string;
-}
-
 interface Notice {
   noticeId: number;
   noticeTitle: string;
@@ -193,51 +156,18 @@ interface Notice {
 const features = ref<Feature[]>([
   {
     icon: 'Monitor',
-    title: '技术先进',
-    description: '采用Vue3、TypeScript等最新技术栈，保持与时俱进'
+    title: '活动与课程',
+    description: '报名、场次、状态与运营数据集中管理，支撑日常教学与活动执行'
   },
   {
     icon: 'SetUp',
-    title: '简单易用',
-    description: '开箱即用的后台解决方案，内置完整的权限验证系统'
+    title: '知识库与成长',
+    description: '话题、内容资产与成长体系联动，便于团队沉淀与学员服务'
   },
   {
     icon: 'Document',
-    title: '规范开发',
-    description: '遵循最佳实践，统一的编码规范，让项目更易维护'
-  }
-])
-
-const plugins = ref<Plugin[]>([
-  {
-    name: 'Auth 权限验证',
-    description: '提供了权限验证相关方法，包括hasPermi、hasRole等功能，用于控制按钮和功能的访问权限'
-  },
-  {
-    name: 'Cache 缓存',
-    description: '提供了浏览器缓存操作方法，支持session和local存储的设置与获取'
-  },
-  {
-    name: 'Modal 弹窗',
-    description: '封装了Element Plus的弹窗组件，提供了更便捷的调用方式'
-  }
-])
-
-const directives = ref<Directive[]>([
-  {
-    name: 'hasPermi',
-    description: '用于控制按钮级别的权限',
-    usage: 'v-hasPermi="[\'system:user:add\']"'
-  },
-  {
-    name: 'hasRole',
-    description: '用于控制角色级别的权限',
-    usage: 'v-hasRole="[\'admin\']"'
-  },
-  {
-    name: 'auth',
-    description: '通用权限验证指令',
-    usage: 'v-auth="\'system:user:edit\'"'
+    title: '组织与权限',
+    description: '角色、菜单与数据范围按企业规范配置，满足内控与审计要求'
   }
 ])
 
@@ -531,50 +461,6 @@ onMounted(() => {
     }
   }
 
-  .features-card {
-    .feature-group {
-      margin-bottom: 30px;
-
-      .group-title {
-        font-size: 1.2em;
-        color: var(--el-text-color-primary);
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid var(--el-border-color-lighter);
-      }
-
-      .feature-list {
-        .feature-list-item {
-          padding: 15px;
-          margin-bottom: 15px;
-          border-radius: 6px;
-          background-color: var(--el-fill-color-light);
-
-          h4 {
-            color: var(--el-color-primary);
-            margin: 0 0 10px;
-          }
-
-          p {
-            color: var(--el-text-color-secondary);
-            margin: 0 0 10px;
-            line-height: 1.5;
-          }
-        }
-      }
-    }
-  }
-
-  // 响应式调整
-  @media (max-width: 768px) {
-    .features-card {
-      .el-row {
-        .el-col {
-          width: 100%;
-        }
-      }
-    }
-  }
 }
 
 // 覆盖卡片样式

@@ -8,7 +8,7 @@ onMounted(() => {
     settingsStore.initSetting().then(() => {
       // 初始化主题样式
       handleThemeStyle(settingsStore.theme)
-      console.log(`\n%cRuoYi%cGeek%c\n`, `padding: 8px; background: ${getDarkColor(settingsStore.theme, 0.1)}; font-weight: bold; font-size: large; color: white;`, `padding: 8px; background: ${getLightColor(settingsStore.theme, 0.1)}; font-size: large; color: #eee;`, '');
+      console.log(`\n%c10倍好%c成长系统%c\n`, `padding: 8px; background: ${getDarkColor(settingsStore.theme, 0.1)}; font-weight: bold; font-size: large; color: white;`, `padding: 8px; background: ${getLightColor(settingsStore.theme, 0.1)}; font-size: large; color: #eee;`, '');
     })
   })
 })

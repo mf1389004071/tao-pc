@@ -47,9 +47,9 @@ onMounted(async () => {
 });
 
 const features = [
-  { icon: Document, text: '模块解耦' },
-  { icon: ChatDotRound, text: '前沿技术' },
-  { icon: User, text: '多端支持' }
+  { icon: Document, text: '活动与知识运营' },
+  { icon: ChatDotRound, text: '消息与协同' },
+  { icon: User, text: '组织与权限' }
 ];
 
 const method = ref("password");
@@ -70,8 +70,8 @@ const title = computed(() => import.meta.env.VITE_APP_TITLE || '后台管理系�
     <BackgroundAnimation />
     <div class="container" :class="{ 'appear-animation': pageLoaded }">
       <div class="container-left">
-        <h1>欢迎使用GEEK生态</h1>
-        <p>打造高效、现代、可扩展的企业级开发平台</p>
+        <h1>欢迎使用 10倍好</h1>
+        <p>十倍好智慧成长平台 · 企业内部统一管理与运营入口</p>
         <div class="features">
           <div class="feature-item" v-for="(item, index) in features" :key="index">
             <el-icon>
@@ -83,7 +83,7 @@ const title = computed(() => import.meta.env.VITE_APP_TITLE || '后台管理系�
         <div class="success-stories">
           <div class="story-counter">
             <span class="counter">{{ successCount }}+</span>
-            <span class="counter-label">成功案例</span>
+            <span class="counter-label">业务支撑能力</span>
           </div>
         </div>
       </div>
@@ -100,7 +100,7 @@ const title = computed(() => import.meta.env.VITE_APP_TITLE || '后台管理系�
     </div>
     <!--  底部  -->
     <div class="el-auth-footer">
-      <span>Copyright © 2018-2024 若依Geek后台管理系统 All Rights Reserved.</span>
+      <span>Copyright © 2018-2026 10倍好 成长系统 All Rights Reserved.</span>
     </div>
   </div>
 </template>

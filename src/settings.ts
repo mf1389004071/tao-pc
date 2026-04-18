@@ -36,7 +36,7 @@ const setting = {
   /** 是否显示底部版权 */
   footerVisible: true,
   /** 底部版权文本内容 */
-  footerContent: 'Copyright © 2018-2026 RuoYi-Geek. All Rights Reserved.',
+  footerContent: 'Copyright © 2018-2026 10倍好. All Rights Reserved.',
 
   /**
    * @type {string | array} 'production' | ['production', 'development']

@@ -1,11 +1,11 @@
 {
-  "name": "ruoyi-geek-vue3",
+  "name": "tao-pc-admin",
   "version": "3.9.1-G",
-  "description": "若依Geek管理系统",
-  "author": "Geek-XD",
+  "description": "10倍好成长系统",
+  "author": "",
   "license": "MIT",
   "type": "module",
-  "homepage": "https://gitee.com/geek-xd",
+  "homepage": "https://10beihao.com/",
   "scripts": {
     "dev": "vite",
     "build:prod": "vite build",
