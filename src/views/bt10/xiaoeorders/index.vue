@@ -74,6 +74,15 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
+        <el-form-item label="待兑手机" prop="claimPhone">
+          <el-input v-model="queryParams.claimPhone" placeholder="待兑手机号" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item label="处理状态" prop="processStatus">
+          <el-select v-model="queryParams.processStatus" clearable placeholder="处理状态" style="width: 140px">
+            <el-option label="待兑 WAIT_CLAIM" value="WAIT_CLAIM" />
+            <el-option label="已兑 CLAIMED" value="CLAIMED" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -150,7 +159,9 @@
           </template>
         </el-table-column>
       <el-table-column label="本地订单号" align="center" prop="orderNo" />
-      <el-table-column label="处理状态" align="center" prop="processStatus" />
+      <el-table-column label="待兑手机" align="center" prop="claimPhone" width="120" />
+      <el-table-column label="产品" align="center" prop="productId" width="120" />
+      <el-table-column label="处理状态" align="center" prop="processStatus" width="110" />
       <el-table-column label="状态" align="center" prop="status">
           <template #default="scope">
             {{ getOptionLabel(statusOptions, scope.row.status) }}
@@ -190,6 +201,32 @@
           <el-col :span="8"><el-form-item label="小鹅通侧创建时间" prop="xiaoeCreateTime"><el-date-picker clearable v-model="form.xiaoeCreateTime" type="date" value-format="YYYY-MM-DD" placeholder="请选择小鹅通侧创建时间" style="width: 100%" /></el-form-item></el-col>
           <el-col :span="8"><el-form-item label="最近同步时间" prop="lastSyncTime"><el-date-picker clearable v-model="form.lastSyncTime" type="date" value-format="YYYY-MM-DD" placeholder="请选择最近同步时间" style="width: 100%" /></el-form-item></el-col>
           <el-col :span="8"><el-form-item label="本地订单号" prop="orderNo"><el-input v-model="form.orderNo" placeholder="请输入本地订单号" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="待兑手机" prop="claimPhone"><el-input v-model="form.claimPhone" placeholder="用户兑换时填写的手机" /></el-form-item></el-col>
+          <el-col :span="8">
+            <el-form-item label="关联产品" prop="productId">
+              <el-select
+                v-model="form.productId"
+                filterable
+                remote
+                clearable
+                reserve-keyword
+                placeholder="搜索业务产品"
+                :remote-method="remoteProduct"
+                :loading="loadingProduct"
+                style="width: 100%"
+              >
+                <el-option v-for="item in productOptions" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="处理状态" prop="processStatus">
+              <el-select v-model="form.processStatus" placeholder="登单默认待兑" style="width: 100%">
+                <el-option label="待兑 WAIT_CLAIM" value="WAIT_CLAIM" />
+                <el-option label="已兑 CLAIMED" value="CLAIMED" />
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="24"><el-form-item label="备注" prop="remark"><el-input v-model="form.remark" type="textarea" placeholder="请输入内容" /></el-form-item></el-col>
         </el-row>
       </el-form>
@@ -205,6 +242,7 @@
 
 <script setup name="Xiaoeorders">
 import { listXiaoeorders, getXiaoeorders, delXiaoeorders, addXiaoeorders, updateXiaoeorders } from "@/api/bt10/xiaoeorders";
+import { listBizproduct, getBizproduct } from "@/api/bt10/bizproduct";
 import { ensureBt10EnumsAndStatusLoaded, getBt10OptionsFromCache, BT10_ENUM_KEYS } from "@/utils/Bt10Helper";
 
 const { proxy } = getCurrentInstance();
@@ -220,6 +258,8 @@ const total = ref(0);
 const title = ref("");
 
 const statusOptions = ref([]);
+const productOptions = ref([]);
+const loadingProduct = ref(false);
 
 const data = reactive({
   form: {},
@@ -242,14 +282,41 @@ const data = reactive({
     syncStatus: null,
     lastSyncTime: null,
     orderNo: null,
+    claimPhone: null,
     processStatus: null,
     status: null,
   },
   rules: {
+    xiaoeOrderNo: [{ required: true, message: "小鹅通订单号不能为空", trigger: "blur" }],
+    claimPhone: [{ required: true, message: "待兑手机不能为空", trigger: "blur" }],
+    productId: [{ required: true, message: "请选择关联产品", trigger: "change" }]
   }
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+function remoteProduct(keyword) {
+  loadingProduct.value = true;
+  listBizproduct({ pageNum: 1, pageSize: 20, name: keyword || undefined, code: keyword || undefined, bizStatus: "ACTIVE" }).then(res => {
+    productOptions.value = (res.rows || []).map(r => ({
+      value: String(r.id),
+      label: `${r.name}（${r.code}）`
+    }));
+  }).finally(() => { loadingProduct.value = false; });
+}
+
+async function ensureProductOption(productId) {
+  if (productId == null || productId === "") return;
+  const id = String(productId);
+  if (productOptions.value.some(o => o.value === id)) return;
+  try {
+    const res = await getBizproduct(id);
+    const r = res.data;
+    if (r) {
+      productOptions.value = [{ value: String(r.id), label: `${r.name}（${r.code}）` }, ...productOptions.value];
+    }
+  } catch (e) { /* ignore */ }
+}
 
 /** 查询小鹅通订单同步表列表 */
 function getList() {
@@ -299,7 +366,9 @@ function reset() {
     syncStatus: null,
     lastSyncTime: null,
     orderNo: null,
-    processStatus: null,
+    claimPhone: null,
+    productId: null,
+    processStatus: "WAIT_CLAIM",
     text1: null,
     text2: null,
     text3: null,
@@ -339,18 +408,22 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  remoteProduct("");
   open.value = true;
-  title.value = "添加小鹅通订单同步表";
+  title.value = "登单（待兑）";
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
   const _id = row?.id ?? ids.value?.[0];
-  getXiaoeorders(_id).then(response => {
+  getXiaoeorders(_id).then(async response => {
     form.value = response.data;
+    if (form.value.productId != null) form.value.productId = String(form.value.productId);
+    if (form.value.userId != null) form.value.userId = String(form.value.userId);
+    await ensureProductOption(form.value.productId);
     open.value = true;
-    title.value = "修改小鹅通订单同步表";
+    title.value = "修改小鹅通登单";
   });
 }
 
@@ -358,15 +431,19 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["xiaoeordersRef"].validate(valid => {
     if (valid) {
-      if (form.value.id != null) {
-        updateXiaoeorders(form.value).then(response => {
+      const payload = { ...form.value };
+      if (payload.productId != null) payload.productId = String(payload.productId);
+      if (payload.userId != null && payload.userId !== "") payload.userId = String(payload.userId);
+      if (!payload.processStatus) payload.processStatus = "WAIT_CLAIM";
+      if (payload.id != null) {
+        updateXiaoeorders(payload).then(() => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addXiaoeorders(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功");
+        addXiaoeorders(payload).then(() => {
+          proxy.$modal.msgSuccess("登单成功");
           open.value = false;
           getList();
         });
